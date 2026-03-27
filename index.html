@@ -68,12 +68,18 @@
       opacity: 0.6;
     }
 
-    /* LOGIN */
-    #loginScreen {
+    /* LOGIN & PIN */
+    #loginScreen, #pinOverlay {
       position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      z-index: 50; background: var(--bg);
+      z-index: 500; background: var(--bg);
+      transition: opacity 0.3s, visibility 0.3s;
     }
+    #pinOverlay { background: rgba(8,8,16,0.85); backdrop-filter: blur(8px); z-index: 600; }
+    #loginScreen.hidden, #pinOverlay.hidden {
+      opacity: 0; visibility: hidden; pointer-events: none;
+    }
+
     .login-card {
       text-align: center;
       padding: 52px 44px;
@@ -127,9 +133,19 @@
     .alejandra .user-avatar { background: rgba(255,111,168,0.2); color: var(--alejandra); }
     .user-btn-name { font-weight: 700; font-size: 1rem; color: var(--text); }
 
+    /* PIN KEYPAD CSS */
+    .pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); transition: 0.2s; }
+    .pin-keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .pin-key {
+      background: var(--s2); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--text); font-family: 'DM Mono', monospace; font-size: 1.2rem;
+      padding: 16px; cursor: pointer; transition: 0.15s;
+    }
+    .pin-key:hover { background: var(--s3); border-color: var(--accent); }
+    .pin-key:active { transform: scale(0.95); }
+
     /* APP */
-    #app { display: none; min-height: 100vh; flex-direction: column; }
-    #app.visible { display: flex; }
+    #app { display: flex; min-height: 100vh; flex-direction: column; } /* changed to flex for overlay pattern */
 
     .topbar {
       position: sticky; top: 0; z-index: 10;
@@ -369,15 +385,36 @@
     <div class="login-sub">Tu espacio de música 🎵</div>
     <div class="login-label">¿Quién eres?</div>
     <div class="user-buttons">
-      <button class="user-btn julian" onclick="login('julian')">
+      <button class="user-btn julian" onclick="selectProfile('julian')">
         <div class="user-avatar">J</div>
         <div class="user-btn-name">Julián</div>
+        <div style="font-size: 0.7rem; color: var(--muted); margin-top: -4px;">🔒 PIN</div>
       </button>
-      <button class="user-btn alejandra" onclick="login('alejandra')">
+      <button class="user-btn alejandra" onclick="selectProfile('alejandra')">
         <div class="user-avatar">A</div>
         <div class="user-btn-name">Alejandra</div>
+        <div style="font-size: 0.7rem; color: var(--muted); margin-top: -4px;">🔒 PIN</div>
       </button>
     </div>
+  </div>
+</div>
+
+<div id="pinOverlay" class="hidden">
+  <div class="login-card" style="padding: 32px 36px; width:320px;">
+    <div style="font-size: 1.4rem; font-weight: 700; margin-bottom: 4px;" id="pinTitle">PIN</div>
+    <div style="font-size: 0.85rem; color: var(--muted); margin-bottom: 24px;">Ingresa tu código</div>
+    <div style="display: flex; justify-content: center; gap: 12px; margin-bottom: 32px;">
+      <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="pin-keypad">
+      <button class="pin-key" onclick="pinPress('1')">1</button><button class="pin-key" onclick="pinPress('2')">2</button><button class="pin-key" onclick="pinPress('3')">3</button>
+      <button class="pin-key" onclick="pinPress('4')">4</button><button class="pin-key" onclick="pinPress('5')">5</button><button class="pin-key" onclick="pinPress('6')">6</button>
+      <button class="pin-key" onclick="pinPress('7')">7</button><button class="pin-key" onclick="pinPress('8')">8</button><button class="pin-key" onclick="pinPress('9')">9</button>
+      <button class="pin-key" onclick="pinPress('0')" style="grid-column:2">0</button>
+      <button class="pin-key" onclick="pinDelete()" style="color:var(--danger)">⌫</button>
+    </div>
+    <button style="background:none;border:none;color:var(--muted);cursor:pointer;font-family:'DM Sans', sans-serif;" onclick="closePin()">Cancelar</button>
   </div>
 </div>
 
@@ -390,7 +427,7 @@
         <div class="dot"></div>
         <span id="userBadgeName"></span>
       </div>
-      <button class="logout-btn" onclick="logout()">Cambiar usuario</button>
+      <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none;">Cambiar usuario</button>
     </div>
   </div>
 
@@ -467,6 +504,52 @@
   let unsubscribe = null;
   let firebaseOk = false;
 
+  // PIN LOGIC
+  const PINS = { julian: '1998', alejandra: '2002' };
+  let activeProfile = null;
+  let pinBuffer = '';
+
+  function selectProfile(user) {
+    activeProfile = user; pinBuffer = '';
+    document.getElementById('pinTitle').textContent = user === 'julian' ? 'Hola Julián' : 'Hola Alejandra';
+    updatePinDots(); document.getElementById('pinOverlay').classList.remove('hidden');
+  }
+
+  function closePin() { 
+    document.getElementById('pinOverlay').classList.add('hidden'); 
+    activeProfile = null; 
+  }
+
+  function pinPress(n) {
+    if (pinBuffer.length >= 4) return;
+    pinBuffer += n; updatePinDots();
+    if (pinBuffer.length === 4) setTimeout(checkPin, 150);
+  }
+
+  function pinDelete() { 
+    pinBuffer = pinBuffer.slice(0, -1); 
+    updatePinDots(); 
+  }
+
+  function updatePinDots(err) {
+    for (let i=0; i<4; i++) {
+      const d = document.getElementById('dot'+i);
+      d.style.background = err ? 'var(--danger)' : (i < pinBuffer.length ? 'var(--accent)' : 'transparent');
+      d.style.borderColor = err ? 'var(--danger)' : (i < pinBuffer.length ? 'var(--accent)' : 'var(--border)');
+    }
+  }
+
+  function checkPin() {
+    if (pinBuffer === PINS[activeProfile]) {
+      const user = activeProfile;
+      closePin(); 
+      login(user);
+    } else {
+      updatePinDots(true); pinBuffer = '';
+      setTimeout(() => updatePinDots(false), 500); toast('❌ PIN incorrecto');
+    }
+  }
+
   // Wait for Firebase module to load
   function waitForFirebase(cb) {
     if (window._firebaseReady) { cb(); return; }
@@ -477,8 +560,11 @@
   function login(user) {
     currentUser = user;
     sessionStorage.setItem('bs_user', user);
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
+    
+    // Hide overlay strictly with classes so video works
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('logoutBtn').style.display = 'block';
+
     const badge = document.getElementById('userBadge');
     badge.className = `user-badge ${user}`;
     document.getElementById('userBadgeName').textContent = user === 'julian' ? 'Julián' : 'Alejandra';
@@ -490,8 +576,10 @@
     if (unsubscribe) unsubscribe();
     currentUser = null; currentIndex = -1; playlist = [];
     sessionStorage.removeItem('bs_user');
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('app').classList.remove('visible');
+    
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('logoutBtn').style.display = 'none';
+
     document.getElementById('npTitle').textContent = '— Ninguna canción —';
     document.getElementById('videoPlaceholder').style.display = 'flex';
     if (player && player.stopVideo) player.stopVideo();
@@ -500,7 +588,6 @@
 
   // FIREBASE INIT
   function initFirebase() {
-    // Detect if still using placeholder config
     const scriptText = document.querySelector('script[type="module"]').textContent;
     const isDemo = !window._db || scriptText.includes('"TU_API_KEY"');
 
@@ -586,7 +673,7 @@
     const track = { id: videoId, title, url: `https://youtu.be/${videoId}`, addedAt: Date.now() };
 
     if (firebaseOk) {
-      const { doc, setDoc, collection } = window._fsLib;
+      const { doc, setDoc } = window._fsLib;
       await setDoc(doc(window._db, `playlists/${currentUser}/tracks`, videoId), track);
     } else {
       playlist.push(track);
@@ -691,23 +778,6 @@
           <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
         </button>
       </div>`).join('');
-  }
-
-  // FIREBASE GUIDE
-  function showFirebaseGuide() {
-    alert(`Pasos para configurar Firebase (gratis):
-
-1. Ve a https://console.firebase.google.com
-2. Crea un proyecto nuevo → nombre "brunosound"
-3. Agrega una app Web (ícono </>)
-4. Copia los valores del objeto firebaseConfig
-5. Abre este index.html en un editor de texto
-6. Busca "TU_API_KEY" y reemplaza los 6 valores
-7. En Firebase → Firestore Database → Crear → Modo prueba
-8. Sube el archivo actualizado a GitHub/Vercel
-
-¡Listo! Las playlists de Julián y Alejandra
-se guardarán por separado en la nube.`);
   }
 
   // KEYBOARD
