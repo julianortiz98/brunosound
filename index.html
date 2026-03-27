@@ -859,7 +859,7 @@
     currentIdx = -1;
     const pl = playlists.find(p => p.id === id);
     if (!pl) return;
-    // Show player inner
+    // Show player inner FIRST so the div is in the DOM and visible
     document.getElementById('noPlMsg').style.display = 'none';
     const inner = document.getElementById('playerInner');
     inner.style.display = 'flex';
@@ -870,6 +870,10 @@
     if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
     renderSidebar();
     listenTracks(id);
+    // Init YT player now that the container is visible
+    if (!ytPlayer) {
+      setTimeout(initYTPlayer, 100);
+    }
   }
 
   function showNoPlMsg() {
@@ -919,8 +923,20 @@
     currentIdx = idx;
     document.getElementById('npTitle').textContent = tracks[idx].title;
     document.getElementById('vph').style.display = 'none';
-    if (ytReady) ytPlayer.loadVideoById(tracks[idx].id);
     renderTracks();
+    if (ytReady && ytPlayer) {
+      ytPlayer.loadVideoById(tracks[idx].id);
+    } else {
+      // Player not ready yet - wait and retry
+      const waitAndPlay = () => {
+        if (ytReady && ytPlayer) {
+          ytPlayer.loadVideoById(tracks[idx].id);
+        } else {
+          setTimeout(waitAndPlay, 300);
+        }
+      };
+      setTimeout(waitAndPlay, 300);
+    }
   }
 
   function nextTrack() {
@@ -948,16 +964,32 @@
   }
 
   // ── YOUTUBE API ───────────────────────────────────
+  let ytApiLoaded = false;
   function onYouTubeIframeAPIReady() {
+    ytApiLoaded = true;
+    // Don't create player yet — wait until playlist is selected and div is visible
+  }
+
+  function initYTPlayer() {
+    if (!ytApiLoaded) { setTimeout(initYTPlayer, 200); return; }
+    if (ytPlayer) return; // already created
+
+    // Ensure the container div exists and is visible
+    const container = document.getElementById('ytPlayer');
+    if (!container) return;
+
     ytPlayer = new YT.Player('ytPlayer', {
       height: '100%', width: '100%', videoId: '',
-      playerVars: { autoplay:1, rel:0, modestbranding:1 },
+      playerVars: { autoplay:1, rel:0, modestbranding:1, enablejsapi:1 },
       events: {
-        onReady: () => {
+        onReady: (e) => {
           ytReady = true;
-          if (currentIdx >= 0 && tracks[currentIdx]) ytPlayer.loadVideoById(tracks[currentIdx].id);
+          if (currentIdx >= 0 && tracks[currentIdx]) {
+            e.target.loadVideoById(tracks[currentIdx].id);
+          }
         },
-        onStateChange: e => { if (e.data === YT.PlayerState.ENDED && autoplay) nextTrack(); }
+        onStateChange: e => { if (e.data === YT.PlayerState.ENDED && autoplay) nextTrack(); },
+        onError: e => { console.warn('YT error', e.data); nextTrack(); }
       }
     });
   }
