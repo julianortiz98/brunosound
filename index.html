@@ -117,6 +117,48 @@
     .luser.julian  .lavatar { background: rgba(232,255,71,.15);  color: var(--julian); }
     .luser.ale     .lavatar { background: rgba(255,126,179,.15); color: var(--alejandra); }
     .lname { font-weight: 700; font-size: .95rem; }
+    .llock { font-size: .7rem; color: var(--muted); }
+    .luser.guest:hover { border-color: var(--sub); background: rgba(144,144,184,.07); }
+    .luser.guest .lavatar { background: rgba(144,144,184,.15); color: var(--sub); font-size: 1.1rem; }
+
+    /* PIN SCREEN */
+    .pin-who { font-size: .9rem; font-weight: 600; color: var(--sub); margin-bottom: 24px; }
+    .pin-dots {
+      display: flex; gap: 14px; justify-content: center; margin-bottom: 8px;
+    }
+    .pin-dots span {
+      width: 14px; height: 14px; border-radius: 50%;
+      border: 2px solid var(--muted); background: transparent;
+      transition: background .15s, border-color .15s;
+    }
+    .pin-dots span.filled { background: var(--accent); border-color: var(--accent); }
+    .pin-dots.shake { animation: shake .4s ease; }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      20% { transform:translateX(-8px); }
+      40% { transform:translateX(8px); }
+      60% { transform:translateX(-6px); }
+      80% { transform:translateX(6px); }
+    }
+    .pin-error {
+      font-size: .75rem; color: var(--red);
+      min-height: 1.2em; margin-bottom: 20px; text-align: center;
+    }
+    .pin-pad {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+    .pin-pad button {
+      background: var(--s2); border: 1px solid var(--border);
+      border-radius: var(--r); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 1.2rem; font-weight: 700;
+      padding: 14px 0; cursor: pointer;
+      transition: background .12s, border-color .12s, transform .08s;
+    }
+    .pin-pad button:hover { background: var(--s3); border-color: var(--sub); }
+    .pin-pad button:active { transform: scale(.94); }
+    .pin-pad .pin-back, .pin-pad .pin-cancel { font-size: .95rem; color: var(--sub); }
+    .pin-pad .pin-cancel:hover { border-color: var(--red); color: var(--red); }
+    .tbadge.guest .dot { background: var(--sub); }
 
     /* ════════════════════════════
        APP SHELL
@@ -478,21 +520,55 @@
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="lcard">
+
+  <!-- STEP 1: elegir usuario -->
+  <div class="lcard" id="stepUsers">
     <div class="llogo">BRUNO<em>SOUND</em></div>
     <div class="lsub">Tu espacio de música 🎵</div>
     <div class="lwho">¿Quién eres?</div>
-    <div class="lusers">
-      <button class="luser julian" onclick="login('julian')">
+    <div class="lusers" style="grid-template-columns:1fr 1fr 1fr;">
+      <button class="luser julian" onclick="selectUser('julian')">
         <div class="lavatar">J</div>
         <div class="lname">Julián</div>
+        <div class="llock">🔒</div>
       </button>
-      <button class="luser ale" onclick="login('alejandra')">
+      <button class="luser ale" onclick="selectUser('alejandra')">
         <div class="lavatar">A</div>
         <div class="lname">Alejandra</div>
+        <div class="llock">🔒</div>
+      </button>
+      <button class="luser guest" onclick="login('invitado')">
+        <div class="lavatar">👤</div>
+        <div class="lname">Invitado</div>
+        <div class="llock" style="opacity:0;">—</div>
       </button>
     </div>
   </div>
+
+  <!-- STEP 2: PIN -->
+  <div class="lcard" id="stepPin" style="display:none;">
+    <div class="llogo">BRUNO<em>SOUND</em></div>
+    <div class="pin-who" id="pinWho"></div>
+    <div class="pin-dots" id="pinDots">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="pin-error" id="pinError"></div>
+    <div class="pin-pad">
+      <button onclick="pinKey('1')">1</button>
+      <button onclick="pinKey('2')">2</button>
+      <button onclick="pinKey('3')">3</button>
+      <button onclick="pinKey('4')">4</button>
+      <button onclick="pinKey('5')">5</button>
+      <button onclick="pinKey('6')">6</button>
+      <button onclick="pinKey('7')">7</button>
+      <button onclick="pinKey('8')">8</button>
+      <button onclick="pinKey('9')">9</button>
+      <button onclick="pinBack()" class="pin-back">⌫</button>
+      <button onclick="pinKey('0')">0</button>
+      <button onclick="backToUsers()" class="pin-cancel">✕</button>
+    </div>
+  </div>
+
 </div>
 
 <!-- APP -->
@@ -632,17 +708,73 @@
     window.addEventListener('firebaseReady', cb, { once: true });
   }
 
+  // ── PINS ──────────────────────────────────────────
+  const PINS = { julian: '1998', alejandra: '2002' };
+  let pinUser = null;
+  let pinVal  = '';
+
+  function selectUser(u) {
+    pinUser = u; pinVal = '';
+    document.getElementById('stepUsers').style.display = 'none';
+    document.getElementById('stepPin').style.display   = 'block';
+    document.getElementById('pinWho').textContent =
+      u === 'julian' ? '🟡 Julián — ingresa tu PIN' : '🩷 Alejandra — ingresa tu PIN';
+    document.getElementById('pinError').textContent = '';
+    updatePinDots();
+  }
+
+  function backToUsers() {
+    pinUser = null; pinVal = '';
+    document.getElementById('stepPin').style.display   = 'none';
+    document.getElementById('stepUsers').style.display = 'block';
+  }
+
+  function pinKey(k) {
+    if (pinVal.length >= 4) return;
+    pinVal += k;
+    updatePinDots();
+    if (pinVal.length === 4) {
+      setTimeout(checkPin, 120);
+    }
+  }
+
+  function pinBack() {
+    pinVal = pinVal.slice(0, -1);
+    updatePinDots();
+    document.getElementById('pinError').textContent = '';
+  }
+
+  function updatePinDots() {
+    const dots = document.querySelectorAll('#pinDots span');
+    dots.forEach((d, i) => d.classList.toggle('filled', i < pinVal.length));
+  }
+
+  function checkPin() {
+    if (pinVal === PINS[pinUser]) {
+      login(pinUser);
+    } else {
+      pinVal = '';
+      updatePinDots();
+      const err = document.getElementById('pinError');
+      err.textContent = 'PIN incorrecto, intenta de nuevo';
+      const dots = document.getElementById('pinDots');
+      dots.classList.add('shake');
+      setTimeout(() => dots.classList.remove('shake'), 400);
+    }
+  }
+
   // ── LOGIN / LOGOUT ────────────────────────────────
   function login(u) {
     user = u;
     sessionStorage.setItem('bs_user', u);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('on');
-    const cls = u === 'julian' ? 'julian' : 'ale';
+    const cls = u === 'julian' ? 'julian' : u === 'alejandra' ? 'ale' : 'guest';
     const badge = document.getElementById('tbadge');
     badge.className = `tbadge ${cls}`;
-    document.getElementById('tbname').textContent = u === 'julian' ? 'Julián' : 'Alejandra';
-    document.getElementById('npTag').className = `np-tag ${cls}`;
+    document.getElementById('tbname').textContent =
+      u === 'julian' ? 'Julián' : u === 'alejandra' ? 'Alejandra' : 'Invitado';
+    document.getElementById('npTag').className = `np-tag ${cls === 'guest' ? 'ale' : cls}`;
     onFB(initFirebase);
   }
 
@@ -650,7 +782,11 @@
     if (unsubPl) unsubPl();
     if (unsubTracks) unsubTracks();
     user = null; playlists = []; tracks = []; activePlId = null; currentIdx = -1;
+    pinUser = null; pinVal = '';
     sessionStorage.removeItem('bs_user');
+    // Reset login to step 1
+    document.getElementById('stepPin').style.display   = 'none';
+    document.getElementById('stepUsers').style.display = 'block';
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('app').classList.remove('on');
     if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
@@ -958,6 +1094,17 @@
   });
   document.getElementById('urlInput').addEventListener('keydown', e => {
     if (e.key === 'Enter') addTrack();
+  });
+
+  // ── PIN KEYBOARD SUPPORT ─────────────────────────
+  document.addEventListener('keydown', e => {
+    const pinVisible = document.getElementById('stepPin').style.display !== 'none'
+      && document.getElementById('loginScreen').style.display !== 'none';
+    if (pinVisible) {
+      if (e.key >= '0' && e.key <= '9') pinKey(e.key);
+      if (e.key === 'Backspace') pinBack();
+      if (e.key === 'Escape') backToUsers();
+    }
   });
 
   // ── AUTO-LOGIN ────────────────────────────────────
