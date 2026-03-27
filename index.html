@@ -426,7 +426,9 @@
   }
   function checkPin() {
     if (pinBuffer === PINS[activeProfile]) {
-      closePin(); enterApp(activeProfile);
+      const user = activeProfile;
+      closePin(); 
+      enterApp(user);
     } else {
       updatePinDots(true); pinBuffer = '';
       setTimeout(() => updatePinDots(false), 500); toast('❌ PIN incorrecto');
@@ -435,6 +437,7 @@
 
   function enterApp(user) {
     currentUser = user;
+    sessionStorage.setItem('bs_user', user);
     document.getElementById('loginScreen').classList.add('hidden');
     document.getElementById('logoutBtn').style.display = 'block';
     const badge = document.getElementById('userBadge');
@@ -449,6 +452,7 @@
     if (unsubscribePls) unsubscribePls();
     if (unsubscribeMaps) unsubscribeMaps();
     currentUser = null; currentIndex = -1; allTracks = []; playlistsDef = []; plMappings = {}; activePlId = 'all';
+    sessionStorage.removeItem('bs_user');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('logoutBtn').style.display = 'none';
     if(playerReady) player.stopVideo(); document.getElementById('videoPlaceholder').style.display = 'flex';
@@ -661,6 +665,9 @@
   document.addEventListener('keydown', e => { if (e.target.tagName==='INPUT') return; if (e.key==='ArrowRight') nextTrack(); if (e.key==='ArrowLeft') prevTrack(); });
   document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') addTrack(); });
   document.getElementById('plNameInput').addEventListener('keydown', e => { if (e.key==='Enter') savePlaylistDoc(); });
+
+  let savedUser = sessionStorage.getItem('bs_user');
+  if (savedUser) enterApp(savedUser);
 </script>
 </body>
 </html>
