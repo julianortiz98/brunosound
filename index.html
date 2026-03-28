@@ -6,14 +6,9 @@
   <title>BrunoSound</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-    // ════════════════════════════════════════════════════
-    // 🔧 REEMPLAZA ESTOS VALORES CON LOS DE TU FIREBASE
-    // ════════════════════════════════════════════════════
+    import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyAwIFSAqCHjrKDmjkf2-HpHp0gUAYPxxow",
       authDomain: "brunosound-5b2bb.firebaseapp.com",
@@ -23,13 +18,10 @@
       appId: "1:1060315548629:web:809b047a68a21713e84b5c",
       measurementId: "G-0B31H8HZ6W"
     };
-    // ════════════════════════════════════════════════════
-
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-
     window._db = db;
-    window._fsLib = { collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy };
+    window._fsLib = { collection, doc, setDoc, deleteDoc, onSnapshot, query, orderBy, getDocs };
     window._firebaseReady = true;
     window.dispatchEvent(new Event('firebaseReady'));
   </script>
@@ -48,343 +40,386 @@
       --danger: #ff4466;
       --julian: #ff6b35;
       --alejandra: #ff6fa8;
+      --invitado: #4ecdc4;
       --radius: 10px;
+      --sidebar-w: 220px;
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
+      content: ''; position: fixed; inset: 0;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-      opacity: 0.6;
+      pointer-events: none; z-index: 0; opacity: 0.6;
     }
 
-    /* LOGIN */
+    /* ── LOGIN ── */
     #loginScreen {
       position: fixed; inset: 0;
       display: flex; align-items: center; justify-content: center;
       z-index: 50; background: var(--bg);
     }
     .login-card {
-      text-align: center;
-      padding: 52px 44px;
-      background: var(--s1);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      width: min(420px, 90vw);
+      text-align: center; padding: 48px 40px;
+      background: var(--s1); border: 1px solid var(--border);
+      border-radius: 20px; width: min(500px, 92vw);
       animation: fadeUp 0.5s ease both;
     }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    .login-logo {
-      font-family: 'Bebas Neue', sans-serif;
-      font-size: 3.4rem;
-      letter-spacing: 0.08em;
-      line-height: 1;
-      margin-bottom: 6px;
-    }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    .login-logo { font-family:'Bebas Neue',sans-serif; font-size:3.2rem; letter-spacing:.08em; line-height:1; margin-bottom:6px; }
     .login-logo span { color: var(--accent); }
-    .login-sub {
-      color: var(--muted); font-size: 0.82rem;
-      margin-bottom: 36px; letter-spacing: 0.05em;
-    }
-    .login-label {
-      font-size: 0.72rem; font-weight: 700;
-      letter-spacing: 0.12em; color: var(--muted);
-      text-transform: uppercase; margin-bottom: 14px;
-    }
-    .user-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .user-btn {
-      padding: 22px 16px;
-      border-radius: var(--radius);
-      border: 2px solid var(--border);
-      background: var(--s2);
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
-    }
-    .user-btn:hover { transform: translateY(-3px); }
-    .user-btn.julian:hover { border-color: var(--julian); background: rgba(255,107,53,0.08); }
-    .user-btn.alejandra:hover { border-color: var(--alejandra); background: rgba(255,111,168,0.08); }
-    .user-avatar {
-      width: 52px; height: 52px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.5rem; font-weight: 700;
-      font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.05em;
-    }
-    .julian .user-avatar { background: rgba(255,107,53,0.2); color: var(--julian); }
-    .alejandra .user-avatar { background: rgba(255,111,168,0.2); color: var(--alejandra); }
-    .user-btn-name { font-weight: 700; font-size: 1rem; color: var(--text); }
+    .login-logo.julian  { color: var(--julian); }
+    .login-logo.alejandra { color: var(--alejandra); }
+    .login-logo.invitado  { color: var(--invitado); }
+    .login-sub { color:var(--muted); font-size:.82rem; margin-bottom:32px; letter-spacing:.05em; }
+    .login-label { font-size:.72rem; font-weight:700; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; margin-bottom:16px; }
 
-    /* APP */
-    #app { display: none; min-height: 100vh; flex-direction: column; }
-    #app.visible { display: flex; }
+    /* 3 user buttons */
+    .user-buttons { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .user-btn {
+      padding:20px 10px; border-radius:var(--radius); border:2px solid var(--border);
+      background:var(--s2); cursor:pointer; transition:all .2s;
+      display:flex; flex-direction:column; align-items:center; gap:8px;
+    }
+    .user-btn:hover { transform:translateY(-3px); }
+    .user-btn.julian:hover    { border-color:var(--julian);    background:rgba(255,107,53,.08); }
+    .user-btn.alejandra:hover { border-color:var(--alejandra); background:rgba(255,111,168,.08); }
+    .user-btn.invitado:hover  { border-color:var(--invitado);  background:rgba(78,205,196,.08); }
+    .user-avatar { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:700; font-family:'Bebas Neue',sans-serif; letter-spacing:.05em; }
+    .julian    .user-avatar { background:rgba(255,107,53,.2);  color:var(--julian); }
+    .alejandra .user-avatar { background:rgba(255,111,168,.2); color:var(--alejandra); }
+    .invitado  .user-avatar { background:rgba(78,205,196,.2);  color:var(--invitado); }
+    .user-btn-name { font-weight:700; font-size:.9rem; color:var(--text); }
+
+    /* ── PIN SCREEN ── */
+    .back-btn {
+      background:none; border:none; color:var(--muted); cursor:pointer;
+      font-family:'DM Sans',sans-serif; font-size:.8rem; padding:4px 0;
+      margin-bottom:20px; display:block; transition:color .2s;
+    }
+    .back-btn:hover { color:var(--text); }
+    .pin-dots { display:flex; gap:14px; justify-content:center; margin:24px 0 8px; }
+    .pin-dot {
+      width:16px; height:16px; border-radius:50%;
+      border:2px solid var(--border); background:transparent;
+      transition:all .15s;
+    }
+    .pin-dot.filled { background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px var(--accent); }
+    .pin-error { color:var(--danger); font-size:.8rem; min-height:1.2em; margin-bottom:18px; opacity:0; transition:opacity .2s; }
+    .numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px; }
+    .numpad button {
+      background:var(--s2); border:1px solid var(--border); border-radius:var(--radius);
+      color:var(--text); font-family:'DM Mono',monospace; font-size:1.1rem;
+      padding:14px; cursor:pointer; transition:background .15s, transform .1s;
+    }
+    .numpad button:hover  { background:var(--s3); border-color:var(--accent); }
+    .numpad button:active { transform:scale(.94); }
+    .numpad .empty { background:none; border:none; cursor:default; }
+    @keyframes shake {
+      0%,100% { transform:translateX(0); }
+      20%,60%  { transform:translateX(-8px); }
+      40%,80%  { transform:translateX(8px); }
+    }
+    .shake { animation:shake .45s ease; }
+
+    /* ── APP ── */
+    #app { display:none; min-height:100vh; flex-direction:column; }
+    #app.visible { display:flex; }
 
     .topbar {
-      position: sticky; top: 0; z-index: 10;
-      background: rgba(8,8,16,0.92);
-      backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px; height: 58px;
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      position:sticky; top:0; z-index:10;
+      background:rgba(8,8,16,.94); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+      padding:0 20px; height:56px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
     }
-    .topbar-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; letter-spacing: 0.08em; }
-    .topbar-logo span { color: var(--accent); }
+    .topbar-left { display:flex; align-items:center; gap:10px; }
+    .topbar-logo { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:.08em; }
+    .topbar-logo span { color:var(--accent); }
+    .sidebar-toggle {
+      background:none; border:1px solid var(--border); border-radius:8px;
+      color:var(--muted); cursor:pointer; width:34px; height:34px;
+      font-size:1rem; display:flex; align-items:center; justify-content:center;
+      transition:all .2s;
+    }
+    .sidebar-toggle:hover { border-color:var(--accent); color:var(--text); }
     .user-badge {
-      display: flex; align-items: center; gap: 8px;
-      padding: 6px 14px; border-radius: 999px;
-      font-size: 0.82rem; font-weight: 700;
-      border: 1px solid var(--border); background: var(--s2);
+      display:flex; align-items:center; gap:8px; padding:6px 14px;
+      border-radius:999px; font-size:.82rem; font-weight:700;
+      border:1px solid var(--border); background:var(--s2);
     }
-    .user-badge .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .user-badge.julian .dot { background: var(--julian); box-shadow: 0 0 8px var(--julian); }
-    .user-badge.alejandra .dot { background: var(--alejandra); box-shadow: 0 0 8px var(--alejandra); }
+    .user-badge .dot { width:8px; height:8px; border-radius:50%; }
+    .user-badge.julian    .dot { background:var(--julian);    box-shadow:0 0 8px var(--julian); }
+    .user-badge.alejandra .dot { background:var(--alejandra); box-shadow:0 0 8px var(--alejandra); }
+    .user-badge.invitado  .dot { background:var(--invitado);  box-shadow:0 0 8px var(--invitado); }
     .logout-btn {
-      background: none; border: 1px solid var(--border); border-radius: 8px;
-      color: var(--muted); font-family: 'DM Sans', sans-serif;
-      font-size: 0.78rem; padding: 6px 14px; cursor: pointer; transition: all 0.2s;
+      background:none; border:1px solid var(--border); border-radius:8px;
+      color:var(--muted); font-family:'DM Sans',sans-serif;
+      font-size:.78rem; padding:6px 14px; cursor:pointer; transition:all .2s;
     }
-    .logout-btn:hover { border-color: var(--danger); color: var(--danger); }
+    .logout-btn:hover { border-color:var(--danger); color:var(--danger); }
 
+    /* ── 3-COLUMN LAYOUT ── */
     .main-layout {
-      flex: 1; display: grid; grid-template-columns: 1fr 360px; gap: 0; min-height: 0;
+      flex:1; display:grid;
+      grid-template-columns: var(--sidebar-w) 1fr 340px;
+      min-height:0; transition:grid-template-columns .25s ease;
     }
+    .main-layout.no-sidebar { grid-template-columns: 0 1fr 340px; }
 
-    /* PLAYER */
+    /* ── SIDEBAR ── */
+    .sidebar {
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column; overflow:hidden;
+      transition:width .25s ease; min-height:0;
+    }
+    .sidebar.hidden { width:0; border-right:none; overflow:hidden; }
+    .sidebar-header {
+      padding:20px 14px 12px;
+      display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+      border-bottom:1px solid var(--border);
+    }
+    .sidebar-header span { font-size:.65rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+    .pl-new-btn {
+      width:26px; height:26px; border-radius:6px;
+      background:var(--s2); border:1px dashed var(--border);
+      color:var(--muted); cursor:pointer; font-size:1.1rem; line-height:1;
+      display:flex; align-items:center; justify-content:center;
+      transition:all .2s; flex-shrink:0;
+    }
+    .pl-new-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(255,107,53,.08); }
+    .sidebar-list { flex:1; overflow-y:auto; padding:8px 8px; display:flex; flex-direction:column; gap:3px; }
+    .sidebar-list::-webkit-scrollbar { width:3px; }
+    .sidebar-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    .sidebar-empty { padding:24px 12px; text-align:center; color:var(--muted); font-size:.75rem; line-height:1.6; }
+    .sidebar-pl-item {
+      display:flex; align-items:center; gap:8px;
+      padding:8px 8px; border-radius:8px; border:1px solid transparent;
+      cursor:pointer; transition:all .15s; position:relative;
+    }
+    .sidebar-pl-item:hover { background:var(--s2); border-color:var(--border); }
+    .sidebar-pl-item.active { background:var(--s2); }
+    .sidebar-pl-item.active.julian    { border-color:var(--julian); }
+    .sidebar-pl-item.active.alejandra { border-color:var(--alejandra); }
+    .sidebar-pl-item.active.invitado  { border-color:var(--invitado); }
+    .sidebar-pl-icon { font-size:.9rem; opacity:.5; flex-shrink:0; }
+    .sidebar-pl-item.active .sidebar-pl-icon { opacity:1; }
+    .sidebar-pl-name { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sidebar-pl-info { flex:1; min-width:0; }
+    .sidebar-del {
+      background:none; border:none; color:var(--muted); cursor:pointer;
+      padding:3px; border-radius:4px; display:flex; align-items:center;
+      opacity:0; transition:opacity .12s, color .12s; flex-shrink:0;
+    }
+    .sidebar-del svg { width:13px; height:13px; fill:currentColor; }
+    .sidebar-pl-item:hover .sidebar-del { opacity:1; }
+    .sidebar-del:hover { color:var(--danger); }
+
+    /* ── PLAYER COL ── */
     .player-col {
-      padding: 28px 32px;
-      display: flex; flex-direction: column; gap: 22px;
-      border-right: 1px solid var(--border);
+      padding:24px 28px; display:flex; flex-direction:column; gap:20px;
+      border-right:1px solid var(--border); overflow-y:auto;
     }
-    .config-banner {
-      background: rgba(255,107,53,0.1);
-      border: 1px solid rgba(255,107,53,0.3);
-      border-radius: var(--radius);
-      padding: 14px 18px; font-size: 0.82rem; line-height: 1.6; color: var(--accent2);
-    }
-    .config-banner strong { display: block; margin-bottom: 4px; font-size: 0.88rem; }
-    .config-banner code {
-      background: rgba(0,0,0,0.3); padding: 1px 6px;
-      border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 0.78rem;
-    }
-    .add-section label {
-      display: block; font-size: 0.68rem; font-weight: 700;
-      letter-spacing: 0.14em; color: var(--muted);
-      text-transform: uppercase; margin-bottom: 8px;
-    }
-    .add-form { display: flex; gap: 10px; }
+    .add-section label { display:block; font-size:.66rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+    .add-form { display:flex; gap:10px; }
     .add-form input {
-      flex: 1; background: var(--s2); border: 1px solid var(--border);
-      border-radius: var(--radius); padding: 12px 16px; color: var(--text);
-      font-family: 'DM Mono', monospace; font-size: 0.78rem;
-      outline: none; transition: border-color 0.2s;
+      flex:1; background:var(--s2); border:1px solid var(--border);
+      border-radius:var(--radius); padding:11px 14px; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:.78rem; outline:none; transition:border-color .2s;
     }
-    .add-form input:focus { border-color: var(--accent); }
-    .add-form input::placeholder { color: var(--muted); }
+    .add-form input:focus { border-color:var(--accent); }
+    .add-form input::placeholder { color:var(--muted); }
     .add-btn {
-      background: var(--accent); color: white; border: none;
-      border-radius: var(--radius); padding: 12px 22px;
-      font-family: 'DM Sans', sans-serif; font-weight: 700;
-      font-size: 0.85rem; cursor: pointer; transition: opacity 0.15s, transform 0.1s; white-space: nowrap;
+      background:var(--accent); color:white; border:none;
+      border-radius:var(--radius); padding:11px 20px;
+      font-family:'DM Sans',sans-serif; font-weight:700;
+      font-size:.84rem; cursor:pointer; transition:opacity .15s, transform .1s; white-space:nowrap;
     }
-    .add-btn:hover { opacity: 0.85; }
-    .add-btn:active { transform: scale(0.97); }
-    .add-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .np-label {
-      font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px;
-    }
-    .np-label.julian { color: var(--julian); }
-    .np-label.alejandra { color: var(--alejandra); }
-    .np-title { font-size: 1.15rem; font-weight: 700; line-height: 1.3; min-height: 1.5em; }
-
+    .add-btn:hover { opacity:.85; }
+    .add-btn:active { transform:scale(.97); }
+    .add-btn:disabled { opacity:.4; cursor:not-allowed; }
+    .np-label { font-size:.64rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px; color:var(--muted); }
+    .np-label.julian    { color:var(--julian); }
+    .np-label.alejandra { color:var(--alejandra); }
+    .np-label.invitado  { color:var(--invitado); }
+    .np-title { font-size:1.1rem; font-weight:700; line-height:1.3; min-height:1.5em; }
     .video-wrap {
-      position: relative; width: 100%; aspect-ratio: 16/9;
-      background: var(--s2); border-radius: 14px;
-      overflow: hidden; border: 1px solid var(--border);
+      position:relative; width:100%; aspect-ratio:16/9;
+      background:var(--s2); border-radius:14px; overflow:hidden; border:1px solid var(--border);
     }
-    .video-wrap iframe { width: 100%; height: 100%; border: none; display: block; }
+    .video-wrap iframe { width:100%; height:100%; border:none; display:block; }
     .video-placeholder {
-      position: absolute; inset: 0;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 12px; color: var(--muted);
+      position:absolute; inset:0; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:10px; color:var(--muted);
     }
-    .video-placeholder .ico { font-size: 3rem; opacity: 0.3; }
-    .video-placeholder p { font-size: 0.82rem; }
-
-    .controls { display: flex; align-items: center; gap: 10px; }
+    .video-placeholder .ico { font-size:2.6rem; opacity:.3; }
+    .video-placeholder p { font-size:.8rem; }
+    .controls { display:flex; align-items:center; gap:10px; }
     .ctrl {
-      background: var(--s2); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text);
-      width: 40px; height: 40px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, border-color 0.15s; flex-shrink: 0;
+      background:var(--s2); border:1px solid var(--border);
+      border-radius:8px; color:var(--text); width:40px; height:40px;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s, border-color .15s; flex-shrink:0;
     }
-    .ctrl:hover { background: var(--s3); border-color: var(--accent); }
-    .ctrl.on { border-color: var(--accent); color: var(--accent); }
-    .ctrl svg { width: 16px; height: 16px; fill: currentColor; }
-    .autoplay-row {
-      margin-left: auto; display: flex; align-items: center; gap: 8px;
-      font-size: 0.78rem; color: var(--muted); cursor: pointer; user-select: none;
-    }
-    .pill {
-      width: 36px; height: 20px; background: var(--border);
-      border-radius: 999px; position: relative; transition: background 0.2s;
-    }
-    .pill.on { background: var(--accent); }
-    .pill::after {
-      content: ''; position: absolute;
-      width: 14px; height: 14px; background: white;
-      border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s;
-    }
-    .pill.on::after { left: 19px; }
+    .ctrl:hover { background:var(--s3); border-color:var(--accent); }
+    .ctrl.on { border-color:var(--accent); color:var(--accent); }
+    .ctrl svg { width:16px; height:16px; fill:currentColor; }
+    .autoplay-row { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--muted); cursor:pointer; user-select:none; }
+    .pill { width:36px; height:20px; background:var(--border); border-radius:999px; position:relative; transition:background .2s; }
+    .pill.on { background:var(--accent); }
+    .pill::after { content:''; position:absolute; width:14px; height:14px; background:white; border-radius:50%; top:3px; left:3px; transition:left .2s; }
+    .pill.on::after { left:19px; }
 
-    /* PLAYLIST */
-    .playlist-col { display: flex; flex-direction: column; overflow: hidden; }
-    .pl-header {
-      padding: 28px 20px 14px;
-      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
-    }
-    .pl-header h2 {
-      font-size: 0.66rem; font-weight: 700;
-      letter-spacing: 0.14em; color: var(--muted); text-transform: uppercase;
-    }
-    .pl-count { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--muted); }
-    .pl-list {
-      flex: 1; overflow-y: auto;
-      padding: 0 12px 16px;
-      display: flex; flex-direction: column; gap: 5px;
-    }
-    .pl-list::-webkit-scrollbar { width: 3px; }
-    .pl-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
+    /* ── PLAYLIST COL ── */
+    .playlist-col { display:flex; flex-direction:column; overflow:hidden; }
+    .pl-header { padding:20px 16px 12px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .pl-header h2 { font-size:.66rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+    .pl-count { font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted); }
+    .pl-list { flex:1; overflow-y:auto; padding:0 10px 14px; display:flex; flex-direction:column; gap:5px; }
+    .pl-list::-webkit-scrollbar { width:3px; }
+    .pl-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
     .pl-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 10px; border-radius: 8px;
-      border: 1px solid transparent; cursor: pointer;
-      transition: background 0.12s, border-color 0.12s;
-      background: var(--s1);
+      display:flex; align-items:center; gap:10px;
+      padding:8px 10px; border-radius:8px; border:1px solid transparent;
+      cursor:pointer; transition:background .12s, border-color .12s; background:var(--s1);
     }
-    .pl-item:hover { background: var(--s2); border-color: var(--border); }
-    .pl-item.active { background: var(--s2); }
-    .pl-item.active.julian { border-color: var(--julian); }
-    .pl-item.active.alejandra { border-color: var(--alejandra); }
+    .pl-item:hover { background:var(--s2); border-color:var(--border); }
+    .pl-item.active { background:var(--s2); }
+    .pl-item.active.julian    { border-color:var(--julian); }
+    .pl-item.active.alejandra { border-color:var(--alejandra); }
+    .pl-item.active.invitado  { border-color:var(--invitado); }
+    .pl-thumb { width:50px; height:34px; border-radius:5px; background:var(--border); flex-shrink:0; overflow:hidden; position:relative; }
+    .pl-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+    .pl-num { position:absolute; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:.6rem; color:white; opacity:0; transition:opacity .12s; }
+    .pl-item:hover .pl-num, .pl-item.active .pl-num { opacity:1; }
+    .pl-info { flex:1; min-width:0; }
+    .pl-title { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.35; }
+    .pl-url { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .playing-bar { display:flex; gap:2px; align-items:flex-end; height:14px; flex-shrink:0; }
+    .playing-bar span { display:block; width:3px; background:var(--accent); border-radius:2px; animation:barAnim .9s ease-in-out infinite; }
+    .playing-bar span:nth-child(1) { height:6px;  animation-delay:0s; }
+    .playing-bar span:nth-child(2) { height:12px; animation-delay:.15s; }
+    .playing-bar span:nth-child(3) { height:8px;  animation-delay:.3s; }
+    @keyframes barAnim { 0%,100%{transform:scaleY(.4)} 50%{transform:scaleY(1)} }
+    .pl-item.alejandra .playing-bar span { background:var(--alejandra); }
+    .pl-item.invitado  .playing-bar span { background:var(--invitado); }
+    .del-btn { background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; border-radius:4px; display:flex; align-items:center; opacity:0; transition:opacity .12s, color .12s; flex-shrink:0; }
+    .del-btn svg { width:14px; height:14px; fill:currentColor; }
+    .pl-item:hover .del-btn { opacity:1; }
+    .del-btn:hover { color:var(--danger); }
+    .empty-pl { padding:36px 16px; text-align:center; color:var(--muted); font-size:.8rem; line-height:1.7; }
+    .empty-pl .ico { font-size:1.8rem; display:block; margin-bottom:8px; }
+    .status-bar { text-align:center; padding:6px; font-size:.7rem; color:var(--muted); border-top:1px solid var(--border); font-family:'DM Mono',monospace; flex-shrink:0; }
+    .status-bar.err { color:var(--danger); }
 
-    .pl-thumb {
-      width: 52px; height: 36px; border-radius: 5px;
-      background: var(--border); flex-shrink: 0; overflow: hidden; position: relative;
+    /* ── MODAL ── */
+    .modal-overlay {
+      position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px);
+      z-index:100; display:flex; align-items:center; justify-content:center;
+      opacity:0; pointer-events:none; transition:opacity .2s;
     }
-    .pl-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pl-num {
-      position: absolute; inset: 0; background: rgba(0,0,0,0.6);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'DM Mono', monospace; font-size: 0.6rem; color: white;
-      opacity: 0; transition: opacity 0.12s;
+    .modal-overlay.show { opacity:1; pointer-events:all; }
+    .modal-card {
+      background:var(--s1); border:1px solid var(--border); border-radius:16px;
+      padding:32px 28px; width:min(360px,90vw); animation:fadeUp .2s ease;
     }
-    .pl-item:hover .pl-num, .pl-item.active .pl-num { opacity: 1; }
-    .pl-info { flex: 1; min-width: 0; }
-    .pl-title {
-      font-size: 0.8rem; font-weight: 500;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.35;
+    .modal-title { font-size:1rem; font-weight:700; margin-bottom:18px; }
+    .modal-input {
+      width:100%; background:var(--s2); border:1px solid var(--border);
+      border-radius:var(--radius); padding:11px 14px; color:var(--text);
+      font-family:'DM Sans',sans-serif; font-size:.88rem; outline:none;
+      transition:border-color .2s; margin-bottom:18px;
     }
-    .pl-url {
-      font-family: 'DM Mono', monospace; font-size: 0.6rem; color: var(--muted);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .modal-input:focus { border-color:var(--accent); }
+    .modal-input.shake { animation:shake .4s ease; border-color:var(--danger); }
+    .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
+    .modal-cancel { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:.84rem; padding:9px 18px; cursor:pointer; transition:all .2s; }
+    .modal-cancel:hover { border-color:var(--text); color:var(--text); }
+    .modal-create { background:var(--accent); border:none; border-radius:8px; color:white; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.84rem; padding:9px 18px; cursor:pointer; transition:opacity .15s; }
+    .modal-create:hover { opacity:.85; }
 
-    .playing-bar { display: flex; gap: 2px; align-items: flex-end; height: 14px; flex-shrink: 0; }
-    .playing-bar span {
-      display: block; width: 3px; background: var(--accent);
-      border-radius: 2px; animation: barAnim 0.9s ease-in-out infinite;
-    }
-    .playing-bar span:nth-child(1) { height: 6px; animation-delay: 0s; }
-    .playing-bar span:nth-child(2) { height: 12px; animation-delay: 0.15s; }
-    .playing-bar span:nth-child(3) { height: 8px; animation-delay: 0.3s; }
-    @keyframes barAnim {
-      0%, 100% { transform: scaleY(0.4); }
-      50%       { transform: scaleY(1); }
-    }
-    .pl-item.alejandra .playing-bar span { background: var(--alejandra); }
-
-    .del-btn {
-      background: none; border: none; color: var(--muted);
-      cursor: pointer; padding: 4px; border-radius: 4px;
-      display: flex; align-items: center;
-      opacity: 0; transition: opacity 0.12s, color 0.12s; flex-shrink: 0;
-    }
-    .del-btn svg { width: 14px; height: 14px; fill: currentColor; }
-    .pl-item:hover .del-btn { opacity: 1; }
-    .del-btn:hover { color: var(--danger); }
-
-    .empty-pl {
-      padding: 40px 16px; text-align: center;
-      color: var(--muted); font-size: 0.82rem; line-height: 1.7;
-    }
-    .empty-pl .ico { font-size: 2rem; display: block; margin-bottom: 8px; }
-
-    .status-bar {
-      text-align: center; padding: 6px;
-      font-size: 0.72rem; color: var(--muted);
-      border-top: 1px solid var(--border);
-      font-family: 'DM Mono', monospace; flex-shrink: 0;
-    }
-    .status-bar.err { color: var(--danger); }
-
+    /* ── TOAST ── */
     .toast {
-      position: fixed; bottom: 24px; left: 50%;
-      transform: translateX(-50%) translateY(70px);
-      padding: 10px 22px;
-      background: var(--s3); border: 1px solid var(--border);
-      border-radius: 999px; font-size: 0.82rem; font-weight: 500;
-      transition: transform 0.3s ease; z-index: 200;
-      pointer-events: none; white-space: nowrap;
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(70px);
+      padding:10px 22px; background:var(--s3); border:1px solid var(--border);
+      border-radius:999px; font-size:.82rem; font-weight:500;
+      transition:transform .3s ease; z-index:200; pointer-events:none; white-space:nowrap;
     }
-    .toast.show { transform: translateX(-50%) translateY(0); }
+    .toast.show { transform:translateX(-50%) translateY(0); }
 
-    @media (max-width: 680px) {
-      .main-layout { grid-template-columns: 1fr; }
-      .player-col { border-right: none; border-bottom: 1px solid var(--border); padding: 20px 16px; }
-      .playlist-col { max-height: 50vh; }
+    /* ── RESPONSIVE ── */
+    @media (max-width:900px) {
+      .main-layout { grid-template-columns: 0 1fr 300px !important; }
+      .sidebar { display:none; }
+    }
+    @media (max-width:640px) {
+      .main-layout { grid-template-columns: 1fr !important; }
+      .playlist-col { max-height:45vh; border-top:1px solid var(--border); }
+      .player-col { border-right:none; padding:16px; }
     }
   </style>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ═══════════════ LOGIN ═══════════════ -->
 <div id="loginScreen">
-  <div class="login-card">
+
+  <!-- User Selection -->
+  <div id="userSelectView" class="login-card">
     <div class="login-logo">BRUNO<span>SOUND</span></div>
     <div class="login-sub">Tu espacio de música 🎵</div>
     <div class="login-label">¿Quién eres?</div>
     <div class="user-buttons">
-      <button class="user-btn julian" onclick="login('julian')">
+      <button class="user-btn julian" id="btn-julian" onclick="selectUser('julian')">
         <div class="user-avatar">J</div>
         <div class="user-btn-name">Julián</div>
       </button>
-      <button class="user-btn alejandra" onclick="login('alejandra')">
+      <button class="user-btn alejandra" id="btn-alejandra" onclick="selectUser('alejandra')">
         <div class="user-avatar">A</div>
         <div class="user-btn-name">Alejandra</div>
       </button>
+      <button class="user-btn invitado" id="btn-invitado" onclick="selectUser('invitado')">
+        <div class="user-avatar">I</div>
+        <div class="user-btn-name">Invitado</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- PIN Entry -->
+  <div id="pinView" class="login-card" style="display:none;">
+    <button class="back-btn" onclick="backToUserSelect()">← Volver</button>
+    <div class="login-logo" id="pinUserName">USUARIO</div>
+    <div class="login-sub">Ingresa tu PIN</div>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="pin-error" id="pinError">PIN incorrecto</div>
+    <div class="numpad">
+      <button onclick="pinDigit('1')">1</button>
+      <button onclick="pinDigit('2')">2</button>
+      <button onclick="pinDigit('3')">3</button>
+      <button onclick="pinDigit('4')">4</button>
+      <button onclick="pinDigit('5')">5</button>
+      <button onclick="pinDigit('6')">6</button>
+      <button onclick="pinDigit('7')">7</button>
+      <button onclick="pinDigit('8')">8</button>
+      <button onclick="pinDigit('9')">9</button>
+      <div class="empty"></div>
+      <button onclick="pinDigit('0')">0</button>
+      <button onclick="pinDelete()">⌫</button>
     </div>
   </div>
 </div>
 
-<!-- APP -->
+<!-- ═══════════════ APP ═══════════════ -->
 <div id="app">
   <div class="topbar">
-    <div class="topbar-logo">BRUNO<span>SOUND</span></div>
+    <div class="topbar-left">
+      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Playlists">☰</button>
+      <div class="topbar-logo">BRUNO<span>SOUND</span></div>
+    </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <div class="user-badge" id="userBadge">
         <div class="dot"></div>
@@ -394,14 +429,21 @@
     </div>
   </div>
 
-  <div class="main-layout">
-    <div class="player-col">
-      <div id="configBanner" class="config-banner" style="display:none;">
-        <strong>⚙️ Falta configurar Firebase</strong>
-        Las canciones se guardan solo localmente hasta que configures Firebase.
-        <a href="#" onclick="showFirebaseGuide();return false;" style="color:var(--accent);text-decoration:underline;margin-left:4px;">Ver pasos →</a>
-      </div>
+  <div class="main-layout" id="mainLayout">
 
+    <!-- ← SIDEBAR: MIS PLAYLISTS -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span>Mis Playlists</span>
+        <button class="pl-new-btn" id="newPlaylistBtn" onclick="openModal()" title="Nueva playlist">+</button>
+      </div>
+      <div class="sidebar-list" id="sidebarList">
+        <div class="sidebar-empty">Cargando...</div>
+      </div>
+    </div>
+
+    <!-- CENTER: PLAYER -->
+    <div class="player-col">
       <div class="add-section">
         <label>Agregar canción de YouTube</label>
         <div class="add-form">
@@ -415,10 +457,10 @@
         <div class="np-title" id="npTitle">— Ninguna canción —</div>
       </div>
 
-      <div class="video-wrap" id="videoWrap">
+      <div class="video-wrap">
         <div class="video-placeholder" id="videoPlaceholder">
           <div class="ico">🎵</div>
-          <p>Agrega un link para empezar</p>
+          <p>Selecciona una playlist y agrega canciones</p>
         </div>
         <div id="ytPlayer"></div>
       </div>
@@ -440,15 +482,28 @@
       </div>
     </div>
 
+    <!-- → TRACKS DE LA PLAYLIST ACTIVA -->
     <div class="playlist-col">
       <div class="pl-header">
-        <h2>Mi playlist</h2>
+        <h2 id="plHeaderName">Playlist</h2>
         <span class="pl-count" id="plCount">0 canciones</span>
       </div>
       <div class="pl-list" id="plList">
-        <div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.</div>
+        <div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div>
       </div>
       <div class="status-bar" id="statusBar">Iniciando...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL NUEVA PLAYLIST ═══════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="onModalBg(event)">
+  <div class="modal-card">
+    <div class="modal-title">Nueva Playlist</div>
+    <input type="text" class="modal-input" id="playlistNameInput" placeholder="Nombre de la playlist..." maxlength="32" />
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="modal-create" onclick="confirmNewPlaylist()">Crear</button>
     </div>
   </div>
 </div>
@@ -457,100 +512,234 @@
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  let currentUser = sessionStorage.getItem('bs_user') || null;
-  let playlist = [];
-  let currentIndex = -1;
-  let player = null;
-  let playerReady = false;
-  let autoplay = true;
-  let shuffle = false;
-  let unsubscribe = null;
-  let firebaseOk = false;
+  /* ══════════════════════════════════════════
+     USERS CONFIG
+  ══════════════════════════════════════════ */
+  const USERS = {
+    julian:    { name: 'Julián',    pin: '1998', color: 'julian',    avatar: 'J' },
+    alejandra: { name: 'Alejandra', pin: '2002', color: 'alejandra', avatar: 'A' },
+    invitado:  { name: 'Invitado',  pin: null,   color: 'invitado',  avatar: 'I' },
+  };
 
-  // Wait for Firebase module to load
+  /* ══════════════════════════════════════════
+     STATE
+  ══════════════════════════════════════════ */
+  let currentUser   = sessionStorage.getItem('bs_user') || null;
+  let selectedUser  = null;
+  let enteredPin    = '';
+  let userPlaylists = [];
+  let activeListId  = null;
+  let playlist      = [];
+  let currentIndex  = -1;
+  let player        = null;
+  let playerReady   = false;
+  let autoplay      = true;
+  let shuffle       = false;
+  let listsUnsub    = null;
+  let tracksUnsub   = null;
+  let firebaseOk    = false;
+  let sidebarOpen   = true;
+
   function waitForFirebase(cb) {
     if (window._firebaseReady) { cb(); return; }
     window.addEventListener('firebaseReady', cb, { once: true });
   }
 
-  // LOGIN
-  function login(user) {
+  /* ══════════════════════════════════════════
+     LOGIN / PIN
+  ══════════════════════════════════════════ */
+  function selectUser(user) {
+    selectedUser = user;
+    if (!USERS[user].pin) { doLogin(user); return; }
+    enteredPin = '';
+    document.getElementById('userSelectView').style.display = 'none';
+    const pv = document.getElementById('pinView');
+    pv.style.display = 'block';
+    const logo = document.getElementById('pinUserName');
+    logo.textContent = USERS[user].name.toUpperCase();
+    logo.className = `login-logo ${user}`;
+    document.getElementById('pinError').style.opacity = '0';
+    updatePinDots();
+  }
+
+  function backToUserSelect() {
+    document.getElementById('pinView').style.display = 'none';
+    document.getElementById('userSelectView').style.display = 'block';
+    enteredPin = ''; selectedUser = null;
+  }
+
+  function pinDigit(d) {
+    if (enteredPin.length >= 4) return;
+    enteredPin += d;
+    updatePinDots();
+    if (enteredPin.length === 4) setTimeout(checkPin, 160);
+  }
+
+  function pinDelete() {
+    enteredPin = enteredPin.slice(0, -1);
+    updatePinDots();
+  }
+
+  function updatePinDots() {
+    for (let i = 0; i < 4; i++) {
+      document.getElementById(`dot${i}`).classList.toggle('filled', i < enteredPin.length);
+    }
+  }
+
+  function checkPin() {
+    if (enteredPin === USERS[selectedUser].pin) {
+      doLogin(selectedUser);
+    } else {
+      const dots = document.getElementById('pinDots');
+      dots.classList.add('shake');
+      document.getElementById('pinError').style.opacity = '1';
+      setTimeout(() => { dots.classList.remove('shake'); enteredPin = ''; updatePinDots(); }, 600);
+    }
+  }
+
+  function doLogin(user) {
     currentUser = user;
     sessionStorage.setItem('bs_user', user);
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
-    const badge = document.getElementById('userBadge');
-    badge.className = `user-badge ${user}`;
-    document.getElementById('userBadgeName').textContent = user === 'julian' ? 'Julián' : 'Alejandra';
+    document.getElementById('userBadge').className = `user-badge ${user}`;
+    document.getElementById('userBadgeName').textContent = USERS[user].name;
     document.getElementById('npLabel').className = `np-label ${user}`;
     waitForFirebase(initFirebase);
   }
 
   function logout() {
-    if (unsubscribe) unsubscribe();
-    currentUser = null; currentIndex = -1; playlist = [];
+    if (listsUnsub)  listsUnsub();
+    if (tracksUnsub) tracksUnsub();
+    currentUser = null; selectedUser = null; enteredPin = '';
+    userPlaylists = []; activeListId = null; playlist = []; currentIndex = -1;
     sessionStorage.removeItem('bs_user');
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('app').classList.remove('visible');
+    document.getElementById('pinView').style.display = 'none';
+    document.getElementById('userSelectView').style.display = 'block';
     document.getElementById('npTitle').textContent = '— Ninguna canción —';
     document.getElementById('videoPlaceholder').style.display = 'flex';
     if (player && player.stopVideo) player.stopVideo();
-    renderPlaylist();
+    firebaseOk = false;
+    renderPlaylist(); renderSidebar();
   }
 
-  // FIREBASE INIT
+  /* ══════════════════════════════════════════
+     FIREBASE
+  ══════════════════════════════════════════ */
   function initFirebase() {
-    // Detect if still using placeholder config
     const scriptText = document.querySelector('script[type="module"]').textContent;
     const isDemo = !window._db || scriptText.includes('"TU_API_KEY"');
-
-    if (isDemo) {
-      document.getElementById('configBanner').style.display = 'block';
-      document.getElementById('statusBar').textContent = '⚠ Sin Firebase · guardado local';
-      loadLocal();
-      return;
-    }
-
+    if (isDemo) { setStatus('⚠ Sin Firebase · local'); loadLocalPlaylists(); return; }
     firebaseOk = true;
+    subscribeToLists();
+  }
+
+  function subscribeToLists() {
     const { collection, query, orderBy, onSnapshot } = window._fsLib;
-    const q = query(
-      collection(window._db, `playlists/${currentUser}/tracks`),
-      orderBy('addedAt', 'asc')
-    );
-    unsubscribe = onSnapshot(q,
-      (snap) => {
-        const prevLen = playlist.length;
-        playlist = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-        setStatus(`● Sincronizado · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
-        renderPlaylist();
-        if (prevLen === 0 && playlist.length > 0) playAt(0);
-      },
-      (err) => {
-        console.error(err);
-        setStatus('⚠ Error de conexión', true);
+    const q = query(collection(window._db, `playlists/${currentUser}/lists`), orderBy('createdAt', 'asc'));
+    listsUnsub = onSnapshot(q, async (snap) => {
+      userPlaylists = snap.docs.map(d => ({ listId: d.id, ...d.data() }));
+      if (userPlaylists.length === 0) { await createPlaylist('Mi Mix', true); return; }
+      renderSidebar();
+      if (!activeListId || !userPlaylists.find(l => l.listId === activeListId)) {
+        switchPlaylist(userPlaylists[0].listId);
       }
-    );
+    });
   }
 
-  function loadLocal() {
-    playlist = JSON.parse(localStorage.getItem(`bs_${currentUser}`) || '[]');
-    setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
-    renderPlaylist();
-    if (playlist.length) playAt(0);
+  function subscribeToTracks(listId) {
+    if (tracksUnsub) { tracksUnsub(); tracksUnsub = null; }
+    playlist = []; currentIndex = -1; renderPlaylist();
+    const { collection, query, orderBy, onSnapshot } = window._fsLib;
+    const q = query(collection(window._db, `playlists/${currentUser}/lists/${listId}/tracks`), orderBy('addedAt', 'asc'));
+    tracksUnsub = onSnapshot(q, (snap) => {
+      const prev = playlist.length;
+      playlist = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
+      setStatus(`● Sincronizado · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+      renderPlaylist();
+      if (prev === 0 && playlist.length > 0) playAt(0);
+    }, err => { console.error(err); setStatus('⚠ Error de conexión', true); });
   }
 
-  function saveLocal() {
-    localStorage.setItem(`bs_${currentUser}`, JSON.stringify(playlist));
-    setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+  async function createPlaylist(name, silent = false) {
+    if (!name || !name.trim()) return;
+    const cleanName = name.trim();
+    if (firebaseOk) {
+      const { doc, setDoc } = window._fsLib;
+      const listId = `list_${Date.now()}`;
+      await setDoc(doc(window._db, `playlists/${currentUser}/lists`, listId), { name: cleanName, createdAt: Date.now() });
+    } else {
+      const listId = `list_${Date.now()}`;
+      userPlaylists.push({ listId, name: cleanName, createdAt: Date.now() });
+      saveLocalPlaylists(); renderSidebar();
+      if (!activeListId) switchPlaylist(listId);
+    }
+    if (!silent) toast(`✓ Playlist "${cleanName}" creada`);
+  }
+
+  async function deletePlaylist(listId) {
+    const pl = userPlaylists.find(l => l.listId === listId);
+    if (!pl) return;
+    if (!confirm(`¿Eliminar "${pl.name}"?\nSe perderán todas sus canciones.`)) return;
+    if (firebaseOk) {
+      const { collection, getDocs, deleteDoc, doc } = window._fsLib;
+      const tSnap = await getDocs(collection(window._db, `playlists/${currentUser}/lists/${listId}/tracks`));
+      for (const d of tSnap.docs) await deleteDoc(doc(window._db, `playlists/${currentUser}/lists/${listId}/tracks`, d.id));
+      await deleteDoc(doc(window._db, `playlists/${currentUser}/lists`, listId));
+    } else {
+      userPlaylists = userPlaylists.filter(l => l.listId !== listId);
+      localStorage.removeItem(`bs_${currentUser}_${listId}`);
+      saveLocalPlaylists();
+    }
+    if (activeListId === listId) {
+      activeListId = null; playlist = []; currentIndex = -1; renderPlaylist();
+      const rem = userPlaylists.filter(l => l.listId !== listId);
+      if (rem.length > 0) switchPlaylist(rem[0].listId);
+    }
+    renderSidebar(); toast('Playlist eliminada');
+  }
+
+  function switchPlaylist(listId) {
+    activeListId = listId;
+    currentIndex = -1;
+    if (player && player.stopVideo) player.stopVideo();
+    document.getElementById('npTitle').textContent = '— Ninguna canción —';
+    document.getElementById('videoPlaceholder').style.display = 'flex';
+    const pl = userPlaylists.find(l => l.listId === listId);
+    if (pl) document.getElementById('plHeaderName').textContent = pl.name;
+    renderSidebar();
+    if (firebaseOk) {
+      subscribeToTracks(listId);
+    } else {
+      playlist = JSON.parse(localStorage.getItem(`bs_${currentUser}_${listId}`) || '[]');
+      setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+      renderPlaylist(); if (playlist.length) playAt(0);
+    }
+  }
+
+  /* ══════════════════════════════════════════
+     LOCAL MODE
+  ══════════════════════════════════════════ */
+  function loadLocalPlaylists() {
+    userPlaylists = JSON.parse(localStorage.getItem(`bs_${currentUser}_lists`) || '[]');
+    if (!userPlaylists.length) { createPlaylist('Mi Mix', true); return; }
+    renderSidebar();
+    if (!activeListId) switchPlaylist(userPlaylists[0].listId);
+  }
+  function saveLocalPlaylists() {
+    localStorage.setItem(`bs_${currentUser}_lists`, JSON.stringify(userPlaylists));
   }
 
   function setStatus(msg, err = false) {
     const el = document.getElementById('statusBar');
-    el.textContent = msg;
-    el.className = 'status-bar' + (err ? ' err' : '');
+    el.textContent = msg; el.className = 'status-bar' + (err ? ' err' : '');
   }
 
-  // UTILS
+  /* ══════════════════════════════════════════
+     UTILS
+  ══════════════════════════════════════════ */
   function extractId(url) {
     const m = url.match(/(?:v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return m ? m[1] : null;
@@ -561,64 +750,60 @@
     t.textContent = msg; t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2400);
   }
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  // ADD TRACK
+  /* ══════════════════════════════════════════
+     ADD / REMOVE TRACK
+  ══════════════════════════════════════════ */
   async function addTrack() {
+    if (!activeListId) { toast('⚠ Selecciona una playlist primero'); return; }
     const input = document.getElementById('urlInput');
-    const url = input.value.trim();
-    if (!url) return;
+    const url = input.value.trim(); if (!url) return;
     const videoId = extractId(url);
     if (!videoId) { toast('⚠ Link inválido'); return; }
     if (playlist.some(t => t.id === videoId)) { toast('Ya está en la lista'); input.value = ''; return; }
-
     const btn = document.getElementById('addBtn');
     btn.disabled = true; btn.textContent = '...';
-
     let title = `Video ${videoId}`;
     try {
       const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (r.ok) title = (await r.json()).title;
     } catch(e) {}
-
     const track = { id: videoId, title, url: `https://youtu.be/${videoId}`, addedAt: Date.now() };
-
     if (firebaseOk) {
-      const { doc, setDoc, collection } = window._fsLib;
-      await setDoc(doc(window._db, `playlists/${currentUser}/tracks`, videoId), track);
+      const { doc, setDoc } = window._fsLib;
+      await setDoc(doc(window._db, `playlists/${currentUser}/lists/${activeListId}/tracks`, videoId), track);
     } else {
       playlist.push(track);
-      saveLocal();
-      renderPlaylist();
-      if (playlist.length === 1) playAt(0);
+      localStorage.setItem(`bs_${currentUser}_${activeListId}`, JSON.stringify(playlist));
+      setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+      renderPlaylist(); if (playlist.length === 1) playAt(0);
     }
-
     input.value = ''; btn.disabled = false; btn.textContent = '+ Agregar';
     toast('✓ Canción agregada');
   }
 
-  // REMOVE
   async function removeTrack(e, videoId) {
     e.stopPropagation();
     if (firebaseOk) {
       const { doc, deleteDoc } = window._fsLib;
-      await deleteDoc(doc(window._db, `playlists/${currentUser}/tracks`, videoId));
+      await deleteDoc(doc(window._db, `playlists/${currentUser}/lists/${activeListId}/tracks`, videoId));
     } else {
       const idx = playlist.findIndex(t => t.id === videoId);
       if (idx !== -1) {
         if (currentIndex === idx) currentIndex = -1;
         else if (currentIndex > idx) currentIndex--;
         playlist.splice(idx, 1);
-        saveLocal();
+        localStorage.setItem(`bs_${currentUser}_${activeListId}`, JSON.stringify(playlist));
         renderPlaylist();
       }
     }
     toast('Eliminada');
   }
 
-  // PLAYBACK
+  /* ══════════════════════════════════════════
+     PLAYBACK
+  ══════════════════════════════════════════ */
   function playAt(index) {
     if (index < 0 || index >= playlist.length) return;
     currentIndex = index;
@@ -627,60 +812,100 @@
     if (playerReady) player.loadVideoById(playlist[index].id);
     renderPlaylist();
   }
-
   function nextTrack() {
     if (!playlist.length) return;
-    if (shuffle) {
-      let n; do { n = Math.floor(Math.random() * playlist.length); }
-      while (playlist.length > 1 && n === currentIndex);
-      playAt(n);
-    } else { playAt((currentIndex + 1) % playlist.length); }
+    if (shuffle) { let n; do { n = Math.floor(Math.random()*playlist.length); } while (playlist.length>1 && n===currentIndex); playAt(n); }
+    else { playAt((currentIndex + 1) % playlist.length); }
   }
-
   function prevTrack() {
     if (!playlist.length) return;
     playAt((currentIndex - 1 + playlist.length) % playlist.length);
   }
-
   function toggleShuffle() {
     shuffle = !shuffle;
     document.getElementById('shuffleBtn').classList.toggle('on', shuffle);
     toast(shuffle ? '🔀 Aleatorio ON' : '🔀 Aleatorio OFF');
   }
-
   function toggleAutoplay() {
     autoplay = !autoplay;
     document.getElementById('autoplayPill').classList.toggle('on', autoplay);
   }
 
-  // YOUTUBE API
+  /* ══════════════════════════════════════════
+     YOUTUBE API
+  ══════════════════════════════════════════ */
   function onYouTubeIframeAPIReady() {
     player = new YT.Player('ytPlayer', {
       height: '100%', width: '100%', videoId: '',
       playerVars: { autoplay: 1, rel: 0, modestbranding: 1 },
       events: {
-        onReady: () => {
-          playerReady = true;
-          if (currentIndex >= 0 && playlist[currentIndex]) player.loadVideoById(playlist[currentIndex].id);
-        },
+        onReady: () => { playerReady = true; if (currentIndex >= 0 && playlist[currentIndex]) player.loadVideoById(playlist[currentIndex].id); },
         onStateChange: (e) => { if (e.data === YT.PlayerState.ENDED && autoplay) nextTrack(); }
       }
     });
   }
 
-  // RENDER
+  /* ══════════════════════════════════════════
+     SIDEBAR
+  ══════════════════════════════════════════ */
+  function renderSidebar() {
+    const list = document.getElementById('sidebarList');
+    if (!userPlaylists.length) {
+      list.innerHTML = `<div class="sidebar-empty">Crea tu primera playlist con el botón <strong>+</strong></div>`;
+      return;
+    }
+    list.innerHTML = userPlaylists.map(pl => `
+      <div class="sidebar-pl-item ${pl.listId === activeListId ? 'active' : ''} ${currentUser}" onclick="switchPlaylist('${pl.listId}')">
+        <div class="sidebar-pl-icon">${pl.listId === activeListId ? '▶' : '♪'}</div>
+        <div class="sidebar-pl-info">
+          <div class="sidebar-pl-name">${esc(pl.name)}</div>
+        </div>
+        <button class="sidebar-del" onclick="deletePlaylist('${pl.listId}');event.stopPropagation();" title="Eliminar playlist">
+          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        </button>
+      </div>
+    `).join('');
+  }
+
+  function toggleSidebar() {
+    sidebarOpen = !sidebarOpen;
+    document.getElementById('sidebar').classList.toggle('hidden', !sidebarOpen);
+    document.getElementById('mainLayout').classList.toggle('no-sidebar', !sidebarOpen);
+  }
+
+  /* ══════════════════════════════════════════
+     MODAL
+  ══════════════════════════════════════════ */
+  function openModal() {
+    document.getElementById('modalOverlay').classList.add('show');
+    document.getElementById('playlistNameInput').value = '';
+    setTimeout(() => document.getElementById('playlistNameInput').focus(), 100);
+  }
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+  function onModalBg(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+  function confirmNewPlaylist() {
+    const input = document.getElementById('playlistNameInput');
+    const name = input.value.trim();
+    if (!name) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 500); return; }
+    createPlaylist(name);
+    closeModal();
+  }
+
+  /* ══════════════════════════════════════════
+     RENDER TRACKS
+  ══════════════════════════════════════════ */
   function renderPlaylist() {
     const list = document.getElementById('plList');
     document.getElementById('plCount').textContent = `${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`;
     if (!playlist.length) {
       list.innerHTML = `<div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.<br>Pega un link arriba.</div>`;
       return;
-    } 
+    }
     list.innerHTML = playlist.map((t, i) => `
       <div class="pl-item ${i === currentIndex ? 'active' : ''} ${currentUser}" onclick="playAt(${i})">
         <div class="pl-thumb">
           <img src="${thumb(t.id)}" alt="" loading="lazy" />
-          <div class="pl-num">${i === currentIndex ? '▶' : i + 1}</div>
+          <div class="pl-num">${i === currentIndex ? '▶' : i+1}</div>
         </div>
         <div class="pl-info">
           <div class="pl-title">${esc(t.title)}</div>
@@ -693,35 +918,28 @@
       </div>`).join('');
   }
 
-  // FIREBASE GUIDE
-  function showFirebaseGuide() {
-    alert(`Pasos para configurar Firebase (gratis):
-
-1. Ve a https://console.firebase.google.com
-2. Crea un proyecto nuevo → nombre "brunosound"
-3. Agrega una app Web (ícono </>)
-4. Copia los valores del objeto firebaseConfig
-5. Abre este index.html en un editor de texto
-6. Busca "TU_API_KEY" y reemplaza los 6 valores
-7. En Firebase → Firestore Database → Crear → Modo prueba
-8. Sube el archivo actualizado a GitHub/Vercel
-
-¡Listo! Las playlists de Julián y Alejandra
-se guardarán por separado en la nube.`);
-  }
-
-  // KEYBOARD
+  /* ══════════════════════════════════════════
+     KEYBOARD
+  ══════════════════════════════════════════ */
   document.addEventListener('keydown', e => {
+    if (document.getElementById('pinView').style.display !== 'none') {
+      if (e.key >= '0' && e.key <= '9') pinDigit(e.key);
+      if (e.key === 'Backspace') pinDelete();
+      return;
+    }
+    if (document.getElementById('modalOverlay').classList.contains('show')) {
+      if (e.key === 'Enter') confirmNewPlaylist();
+      if (e.key === 'Escape') closeModal();
+      return;
+    }
     if (e.target.tagName === 'INPUT') return;
     if (e.key === 'ArrowRight') nextTrack();
-    if (e.key === 'ArrowLeft') prevTrack();
+    if (e.key === 'ArrowLeft')  prevTrack();
   });
-  document.getElementById('urlInput').addEventListener('keydown', e => {
-    if (e.key === 'Enter') addTrack();
-  });
+  document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTrack(); });
 
-  // AUTO-LOGIN if session exists
-  if (currentUser) login(currentUser);
+  // Auto-login si hay sesión activa
+  if (currentUser && USERS[currentUser]) doLogin(currentUser);
 </script>
 </body>
 </html>
