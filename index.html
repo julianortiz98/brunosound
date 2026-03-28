@@ -675,7 +675,7 @@
     if (!playlist.length) {
       list.innerHTML = `<div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.<br>Pega un link arriba.</div>`;
       return;
-    }
+    } 
     list.innerHTML = playlist.map((t, i) => `
       <div class="pl-item ${i === currentIndex ? 'active' : ''} ${currentUser}" onclick="playAt(${i})">
         <div class="pl-thumb">
