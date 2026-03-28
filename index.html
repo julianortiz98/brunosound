@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>BrunoSound</title>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
@@ -33,470 +33,570 @@
       --s2: #16162a;
       --s3: #1e1e32;
       --accent: #ff6b35;
-      --accent2: #ffb347;
       --text: #f0f0f8;
       --muted: #5a5a7a;
       --border: #252540;
       --danger: #ff4466;
-      --julian: #ff6b35;
+      --julian:    #ff6b35;
       --alejandra: #ff6fa8;
-      --invitado: #4ecdc4;
+      --invitado:  #4ecdc4;
       --radius: 10px;
-      --sidebar-w: 220px;
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
-    body::before {
-      content: ''; position: fixed; inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none; z-index: 0; opacity: 0.6;
+      --topbar-h: 54px;
+      --player-bar-h: 72px;
     }
 
-    /* ── LOGIN ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      height: 100%; overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ══════════════════ LOGIN ══════════════════ */
     #loginScreen {
-      position: fixed; inset: 0;
+      position: fixed; inset: 0; z-index: 200;
       display: flex; align-items: center; justify-content: center;
-      z-index: 50; background: var(--bg);
+      background: var(--bg); padding: 16px;
     }
     .login-card {
-      text-align: center; padding: 48px 40px;
+      text-align: center; padding: 36px 28px;
       background: var(--s1); border: 1px solid var(--border);
-      border-radius: 20px; width: min(500px, 92vw);
-      animation: fadeUp 0.5s ease both;
+      border-radius: 20px; width: min(480px, 100%);
+      animation: fadeUp .45s ease both;
     }
-    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-    .login-logo { font-family:'Bebas Neue',sans-serif; font-size:3.2rem; letter-spacing:.08em; line-height:1; margin-bottom:6px; }
-    .login-logo span { color: var(--accent); }
-    .login-logo.julian  { color: var(--julian); }
-    .login-logo.alejandra { color: var(--alejandra); }
-    .login-logo.invitado  { color: var(--invitado); }
-    .login-sub { color:var(--muted); font-size:.82rem; margin-bottom:32px; letter-spacing:.05em; }
-    .login-label { font-size:.72rem; font-weight:700; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; margin-bottom:16px; }
-
-    /* 3 user buttons */
-    .user-buttons { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    .login-logo { font-family:'Bebas Neue',sans-serif; font-size:2.8rem; letter-spacing:.08em; line-height:1; margin-bottom:4px; }
+    .login-logo span { color:var(--accent); }
+    .login-logo.julian    span { color:var(--julian); }
+    .login-logo.alejandra span { color:var(--alejandra); }
+    .login-logo.invitado  span { color:var(--invitado); }
+    .login-sub { color:var(--muted); font-size:.8rem; margin-bottom:28px; }
+    .login-label { font-size:.68rem; font-weight:700; letter-spacing:.12em; color:var(--muted); text-transform:uppercase; margin-bottom:14px; }
+    .user-buttons { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
     .user-btn {
-      padding:20px 10px; border-radius:var(--radius); border:2px solid var(--border);
+      padding:18px 8px; border-radius:var(--radius); border:2px solid var(--border);
       background:var(--s2); cursor:pointer; transition:all .2s;
       display:flex; flex-direction:column; align-items:center; gap:8px;
     }
-    .user-btn:hover { transform:translateY(-3px); }
+    .user-btn:active { transform:scale(.96); }
     .user-btn.julian:hover    { border-color:var(--julian);    background:rgba(255,107,53,.08); }
     .user-btn.alejandra:hover { border-color:var(--alejandra); background:rgba(255,111,168,.08); }
     .user-btn.invitado:hover  { border-color:var(--invitado);  background:rgba(78,205,196,.08); }
-    .user-avatar { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem; font-weight:700; font-family:'Bebas Neue',sans-serif; letter-spacing:.05em; }
+    .user-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:700; font-family:'Bebas Neue',sans-serif; }
     .julian    .user-avatar { background:rgba(255,107,53,.2);  color:var(--julian); }
     .alejandra .user-avatar { background:rgba(255,111,168,.2); color:var(--alejandra); }
     .invitado  .user-avatar { background:rgba(78,205,196,.2);  color:var(--invitado); }
-    .user-btn-name { font-weight:700; font-size:.9rem; color:var(--text); }
+    .user-btn-name { font-weight:700; font-size:.85rem; }
 
-    /* ── PIN SCREEN ── */
-    .back-btn {
-      background:none; border:none; color:var(--muted); cursor:pointer;
-      font-family:'DM Sans',sans-serif; font-size:.8rem; padding:4px 0;
-      margin-bottom:20px; display:block; transition:color .2s;
-    }
+    /* PIN */
+    .back-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:.8rem; padding:4px 0; margin-bottom:16px; display:block; }
     .back-btn:hover { color:var(--text); }
-    .pin-dots { display:flex; gap:14px; justify-content:center; margin:24px 0 8px; }
-    .pin-dot {
-      width:16px; height:16px; border-radius:50%;
-      border:2px solid var(--border); background:transparent;
-      transition:all .15s;
-    }
-    .pin-dot.filled { background:var(--accent); border-color:var(--accent); box-shadow:0 0 10px var(--accent); }
-    .pin-error { color:var(--danger); font-size:.8rem; min-height:1.2em; margin-bottom:18px; opacity:0; transition:opacity .2s; }
-    .numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:8px; }
+    .pin-dots { display:flex; gap:14px; justify-content:center; margin:20px 0 6px; }
+    .pin-dot { width:14px; height:14px; border-radius:50%; border:2px solid var(--border); background:transparent; transition:all .15s; }
+    .pin-dot.filled { background:var(--accent); border-color:var(--accent); box-shadow:0 0 8px var(--accent); }
+    .pin-error { color:var(--danger); font-size:.78rem; min-height:1.2em; margin-bottom:14px; opacity:0; transition:opacity .2s; }
+    .numpad { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:6px; }
     .numpad button {
       background:var(--s2); border:1px solid var(--border); border-radius:var(--radius);
       color:var(--text); font-family:'DM Mono',monospace; font-size:1.1rem;
-      padding:14px; cursor:pointer; transition:background .15s, transform .1s;
+      padding:14px; cursor:pointer; transition:background .12s, transform .08s; touch-action:manipulation;
     }
-    .numpad button:hover  { background:var(--s3); border-color:var(--accent); }
-    .numpad button:active { transform:scale(.94); }
+    .numpad button:active { transform:scale(.93); background:var(--s3); }
     .numpad .empty { background:none; border:none; cursor:default; }
-    @keyframes shake {
-      0%,100% { transform:translateX(0); }
-      20%,60%  { transform:translateX(-8px); }
-      40%,80%  { transform:translateX(8px); }
-    }
-    .shake { animation:shake .45s ease; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 20%,60%{transform:translateX(-7px)} 40%,80%{transform:translateX(7px)} }
+    .shake { animation:shake .4s ease; }
 
-    /* ── APP ── */
-    #app { display:none; min-height:100vh; flex-direction:column; }
+    /* ══════════════════ APP SHELL ══════════════════ */
+    #app { display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0; }
     #app.visible { display:flex; }
 
+    /* TOPBAR */
     .topbar {
-      position:sticky; top:0; z-index:10;
-      background:rgba(8,8,16,.94); backdrop-filter:blur(16px);
+      height:var(--topbar-h); flex-shrink:0;
+      background:rgba(8,8,16,.95); backdrop-filter:blur(16px);
       border-bottom:1px solid var(--border);
-      padding:0 20px; height:56px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:0 14px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+      z-index:50;
     }
-    .topbar-left { display:flex; align-items:center; gap:10px; }
-    .topbar-logo { font-family:'Bebas Neue',sans-serif; font-size:1.5rem; letter-spacing:.08em; }
+    .topbar-left { display:flex; align-items:center; gap:8px; }
+    .topbar-logo { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; letter-spacing:.08em; }
     .topbar-logo span { color:var(--accent); }
     .sidebar-toggle {
       background:none; border:1px solid var(--border); border-radius:8px;
-      color:var(--muted); cursor:pointer; width:34px; height:34px;
-      font-size:1rem; display:flex; align-items:center; justify-content:center;
-      transition:all .2s;
+      color:var(--muted); cursor:pointer; width:32px; height:32px; font-size:.95rem;
+      display:flex; align-items:center; justify-content:center; transition:all .2s; flex-shrink:0;
     }
     .sidebar-toggle:hover { border-color:var(--accent); color:var(--text); }
     .user-badge {
-      display:flex; align-items:center; gap:8px; padding:6px 14px;
-      border-radius:999px; font-size:.82rem; font-weight:700;
-      border:1px solid var(--border); background:var(--s2);
+      display:flex; align-items:center; gap:7px; padding:5px 12px;
+      border-radius:999px; font-size:.78rem; font-weight:700;
+      border:1px solid var(--border); background:var(--s2); white-space:nowrap;
     }
-    .user-badge .dot { width:8px; height:8px; border-radius:50%; }
-    .user-badge.julian    .dot { background:var(--julian);    box-shadow:0 0 8px var(--julian); }
-    .user-badge.alejandra .dot { background:var(--alejandra); box-shadow:0 0 8px var(--alejandra); }
-    .user-badge.invitado  .dot { background:var(--invitado);  box-shadow:0 0 8px var(--invitado); }
+    .user-badge .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .user-badge.julian    .dot { background:var(--julian);    box-shadow:0 0 7px var(--julian); }
+    .user-badge.alejandra .dot { background:var(--alejandra); box-shadow:0 0 7px var(--alejandra); }
+    .user-badge.invitado  .dot { background:var(--invitado);  box-shadow:0 0 7px var(--invitado); }
     .logout-btn {
       background:none; border:1px solid var(--border); border-radius:8px;
       color:var(--muted); font-family:'DM Sans',sans-serif;
-      font-size:.78rem; padding:6px 14px; cursor:pointer; transition:all .2s;
+      font-size:.75rem; padding:5px 12px; cursor:pointer; transition:all .2s; white-space:nowrap;
     }
     .logout-btn:hover { border-color:var(--danger); color:var(--danger); }
 
-    /* ── 3-COLUMN LAYOUT ── */
-    .main-layout {
+    /* ══════════════════ DESKTOP 3-COL ══════════════════ */
+    .desktop-layout {
       flex:1; display:grid;
-      grid-template-columns: var(--sidebar-w) 1fr 340px;
-      min-height:0; transition:grid-template-columns .25s ease;
+      grid-template-columns:220px 1fr 320px;
+      min-height:0; overflow:hidden;
     }
-    .main-layout.no-sidebar { grid-template-columns: 0 1fr 340px; }
 
-    /* ── SIDEBAR ── */
+    /* SIDEBAR */
     .sidebar {
       border-right:1px solid var(--border);
       display:flex; flex-direction:column; overflow:hidden;
-      transition:width .25s ease; min-height:0;
+      transition:all .25s; background:var(--s1);
     }
-    .sidebar.hidden { width:0; border-right:none; overflow:hidden; }
     .sidebar-header {
-      padding:20px 14px 12px;
+      padding:16px 12px 10px;
       display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
       border-bottom:1px solid var(--border);
     }
-    .sidebar-header span { font-size:.65rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+    .sidebar-header span { font-size:.62rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
     .pl-new-btn {
-      width:26px; height:26px; border-radius:6px;
-      background:var(--s2); border:1px dashed var(--border);
-      color:var(--muted); cursor:pointer; font-size:1.1rem; line-height:1;
-      display:flex; align-items:center; justify-content:center;
-      transition:all .2s; flex-shrink:0;
+      width:26px; height:26px; border-radius:6px; background:var(--s2);
+      border:1px dashed var(--border); color:var(--muted); cursor:pointer;
+      font-size:1.1rem; display:flex; align-items:center; justify-content:center; transition:all .2s;
     }
-    .pl-new-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(255,107,53,.08); }
-    .sidebar-list { flex:1; overflow-y:auto; padding:8px 8px; display:flex; flex-direction:column; gap:3px; }
-    .sidebar-list::-webkit-scrollbar { width:3px; }
-    .sidebar-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
-    .sidebar-empty { padding:24px 12px; text-align:center; color:var(--muted); font-size:.75rem; line-height:1.6; }
+    .pl-new-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .sidebar-list { flex:1; overflow-y:auto; padding:6px 6px; display:flex; flex-direction:column; gap:3px; }
+    .sidebar-empty { padding:20px 10px; text-align:center; color:var(--muted); font-size:.74rem; line-height:1.6; }
     .sidebar-pl-item {
-      display:flex; align-items:center; gap:8px;
-      padding:8px 8px; border-radius:8px; border:1px solid transparent;
-      cursor:pointer; transition:all .15s; position:relative;
+      display:flex; align-items:center; gap:8px; padding:8px 8px;
+      border-radius:8px; border:1px solid transparent; cursor:pointer; transition:all .15s;
     }
     .sidebar-pl-item:hover { background:var(--s2); border-color:var(--border); }
     .sidebar-pl-item.active { background:var(--s2); }
     .sidebar-pl-item.active.julian    { border-color:var(--julian); }
     .sidebar-pl-item.active.alejandra { border-color:var(--alejandra); }
     .sidebar-pl-item.active.invitado  { border-color:var(--invitado); }
-    .sidebar-pl-icon { font-size:.9rem; opacity:.5; flex-shrink:0; }
+    .sidebar-pl-icon { font-size:.85rem; opacity:.5; flex-shrink:0; }
     .sidebar-pl-item.active .sidebar-pl-icon { opacity:1; }
-    .sidebar-pl-name { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .sidebar-pl-info { flex:1; min-width:0; }
-    .sidebar-del {
-      background:none; border:none; color:var(--muted); cursor:pointer;
-      padding:3px; border-radius:4px; display:flex; align-items:center;
-      opacity:0; transition:opacity .12s, color .12s; flex-shrink:0;
-    }
+    .sidebar-pl-name { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; min-width:0; }
+    .sidebar-del { background:none; border:none; color:var(--muted); cursor:pointer; padding:3px; border-radius:4px; display:flex; align-items:center; opacity:0; transition:opacity .12s, color .12s; flex-shrink:0; }
     .sidebar-del svg { width:13px; height:13px; fill:currentColor; }
     .sidebar-pl-item:hover .sidebar-del { opacity:1; }
     .sidebar-del:hover { color:var(--danger); }
 
-    /* ── PLAYER COL ── */
+    /* PLAYER COL */
     .player-col {
-      padding:24px 28px; display:flex; flex-direction:column; gap:20px;
-      border-right:1px solid var(--border); overflow-y:auto;
+      padding:20px 24px; display:flex; flex-direction:column; gap:18px;
+      border-right:1px solid var(--border); overflow-y:auto; min-height:0;
     }
-    .add-section label { display:block; font-size:.66rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
-    .add-form { display:flex; gap:10px; }
+    .add-section label { display:block; font-size:.63rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin-bottom:7px; }
+    .add-form { display:flex; gap:8px; }
     .add-form input {
       flex:1; background:var(--s2); border:1px solid var(--border);
-      border-radius:var(--radius); padding:11px 14px; color:var(--text);
-      font-family:'DM Mono',monospace; font-size:.78rem; outline:none; transition:border-color .2s;
+      border-radius:var(--radius); padding:10px 14px; color:var(--text);
+      font-family:'DM Mono',monospace; font-size:.76rem; outline:none; transition:border-color .2s;
+      min-width:0;
     }
     .add-form input:focus { border-color:var(--accent); }
     .add-form input::placeholder { color:var(--muted); }
     .add-btn {
       background:var(--accent); color:white; border:none;
-      border-radius:var(--radius); padding:11px 20px;
-      font-family:'DM Sans',sans-serif; font-weight:700;
-      font-size:.84rem; cursor:pointer; transition:opacity .15s, transform .1s; white-space:nowrap;
+      border-radius:var(--radius); padding:10px 18px;
+      font-family:'DM Sans',sans-serif; font-weight:700; font-size:.82rem;
+      cursor:pointer; transition:opacity .15s, transform .1s; white-space:nowrap; flex-shrink:0;
+      touch-action:manipulation;
     }
     .add-btn:hover { opacity:.85; }
-    .add-btn:active { transform:scale(.97); }
+    .add-btn:active { transform:scale(.96); }
     .add-btn:disabled { opacity:.4; cursor:not-allowed; }
-    .np-label { font-size:.64rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:4px; color:var(--muted); }
+
+    .np-label { font-size:.62rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; margin-bottom:3px; color:var(--muted); }
     .np-label.julian    { color:var(--julian); }
     .np-label.alejandra { color:var(--alejandra); }
     .np-label.invitado  { color:var(--invitado); }
-    .np-title { font-size:1.1rem; font-weight:700; line-height:1.3; min-height:1.5em; }
+    .np-title { font-size:1rem; font-weight:700; line-height:1.3; min-height:1.4em; }
+
     .video-wrap {
       position:relative; width:100%; aspect-ratio:16/9;
-      background:var(--s2); border-radius:14px; overflow:hidden; border:1px solid var(--border);
+      background:var(--s2); border-radius:12px; overflow:hidden; border:1px solid var(--border);
     }
     .video-wrap iframe { width:100%; height:100%; border:none; display:block; }
     .video-placeholder {
       position:absolute; inset:0; display:flex; flex-direction:column;
       align-items:center; justify-content:center; gap:10px; color:var(--muted);
     }
-    .video-placeholder .ico { font-size:2.6rem; opacity:.3; }
-    .video-placeholder p { font-size:.8rem; }
-    .controls { display:flex; align-items:center; gap:10px; }
+    .video-placeholder .ico { font-size:2.4rem; opacity:.3; }
+    .video-placeholder p { font-size:.76rem; text-align:center; padding:0 16px; }
+
+    .controls { display:flex; align-items:center; gap:8px; }
     .ctrl {
       background:var(--s2); border:1px solid var(--border);
-      border-radius:8px; color:var(--text); width:40px; height:40px;
+      border-radius:8px; color:var(--text); width:38px; height:38px;
       cursor:pointer; display:flex; align-items:center; justify-content:center;
-      transition:background .15s, border-color .15s; flex-shrink:0;
+      transition:background .12s, border-color .12s; flex-shrink:0; touch-action:manipulation;
     }
-    .ctrl:hover { background:var(--s3); border-color:var(--accent); }
+    .ctrl:hover  { background:var(--s3); border-color:var(--accent); }
+    .ctrl:active { transform:scale(.93); }
     .ctrl.on { border-color:var(--accent); color:var(--accent); }
-    .ctrl svg { width:16px; height:16px; fill:currentColor; }
-    .autoplay-row { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:.78rem; color:var(--muted); cursor:pointer; user-select:none; }
-    .pill { width:36px; height:20px; background:var(--border); border-radius:999px; position:relative; transition:background .2s; }
+    .ctrl svg { width:15px; height:15px; fill:currentColor; }
+    .autoplay-row { margin-left:auto; display:flex; align-items:center; gap:7px; font-size:.75rem; color:var(--muted); cursor:pointer; user-select:none; }
+    .pill { width:34px; height:18px; background:var(--border); border-radius:999px; position:relative; transition:background .2s; flex-shrink:0; }
     .pill.on { background:var(--accent); }
-    .pill::after { content:''; position:absolute; width:14px; height:14px; background:white; border-radius:50%; top:3px; left:3px; transition:left .2s; }
+    .pill::after { content:''; position:absolute; width:12px; height:12px; background:white; border-radius:50%; top:3px; left:3px; transition:left .2s; }
     .pill.on::after { left:19px; }
 
-    /* ── PLAYLIST COL ── */
-    .playlist-col { display:flex; flex-direction:column; overflow:hidden; }
-    .pl-header { padding:20px 16px 12px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
-    .pl-header h2 { font-size:.66rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
-    .pl-count { font-family:'DM Mono',monospace; font-size:.7rem; color:var(--muted); }
-    .pl-list { flex:1; overflow-y:auto; padding:0 10px 14px; display:flex; flex-direction:column; gap:5px; }
-    .pl-list::-webkit-scrollbar { width:3px; }
-    .pl-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+    /* TRACKS COL */
+    .playlist-col { display:flex; flex-direction:column; overflow:hidden; min-height:0; }
+    .pl-header { padding:16px 14px 10px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .pl-header h2 { font-size:.62rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+    .pl-count { font-family:'DM Mono',monospace; font-size:.68rem; color:var(--muted); }
+    .pl-list { flex:1; overflow-y:auto; padding:0 8px 12px; display:flex; flex-direction:column; gap:4px; }
     .pl-item {
-      display:flex; align-items:center; gap:10px;
-      padding:8px 10px; border-radius:8px; border:1px solid transparent;
-      cursor:pointer; transition:background .12s, border-color .12s; background:var(--s1);
+      display:flex; align-items:center; gap:9px; padding:8px 9px;
+      border-radius:8px; border:1px solid transparent; cursor:pointer;
+      transition:background .12s, border-color .12s; background:var(--s1); touch-action:manipulation;
     }
-    .pl-item:hover { background:var(--s2); border-color:var(--border); }
+    .pl-item:hover  { background:var(--s2); border-color:var(--border); }
+    .pl-item:active { background:var(--s2); }
     .pl-item.active { background:var(--s2); }
     .pl-item.active.julian    { border-color:var(--julian); }
     .pl-item.active.alejandra { border-color:var(--alejandra); }
     .pl-item.active.invitado  { border-color:var(--invitado); }
-    .pl-thumb { width:50px; height:34px; border-radius:5px; background:var(--border); flex-shrink:0; overflow:hidden; position:relative; }
+    .pl-thumb { width:48px; height:32px; border-radius:5px; background:var(--border); flex-shrink:0; overflow:hidden; position:relative; }
     .pl-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
-    .pl-num { position:absolute; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:.6rem; color:white; opacity:0; transition:opacity .12s; }
+    .pl-num { position:absolute; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; font-family:'DM Mono',monospace; font-size:.58rem; color:white; opacity:0; transition:opacity .12s; }
     .pl-item:hover .pl-num, .pl-item.active .pl-num { opacity:1; }
     .pl-info { flex:1; min-width:0; }
-    .pl-title { font-size:.78rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.35; }
-    .pl-url { font-family:'DM Mono',monospace; font-size:.58rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .playing-bar { display:flex; gap:2px; align-items:flex-end; height:14px; flex-shrink:0; }
+    .pl-title { font-size:.76rem; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
+    .pl-url { font-family:'DM Mono',monospace; font-size:.56rem; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .playing-bar { display:flex; gap:2px; align-items:flex-end; height:13px; flex-shrink:0; }
     .playing-bar span { display:block; width:3px; background:var(--accent); border-radius:2px; animation:barAnim .9s ease-in-out infinite; }
-    .playing-bar span:nth-child(1) { height:6px;  animation-delay:0s; }
-    .playing-bar span:nth-child(2) { height:12px; animation-delay:.15s; }
-    .playing-bar span:nth-child(3) { height:8px;  animation-delay:.3s; }
+    .playing-bar span:nth-child(1){height:5px;  animation-delay:0s;}
+    .playing-bar span:nth-child(2){height:11px; animation-delay:.15s;}
+    .playing-bar span:nth-child(3){height:7px;  animation-delay:.3s;}
     @keyframes barAnim { 0%,100%{transform:scaleY(.4)} 50%{transform:scaleY(1)} }
     .pl-item.alejandra .playing-bar span { background:var(--alejandra); }
     .pl-item.invitado  .playing-bar span { background:var(--invitado); }
     .del-btn { background:none; border:none; color:var(--muted); cursor:pointer; padding:4px; border-radius:4px; display:flex; align-items:center; opacity:0; transition:opacity .12s, color .12s; flex-shrink:0; }
-    .del-btn svg { width:14px; height:14px; fill:currentColor; }
+    .del-btn svg { width:13px; height:13px; fill:currentColor; }
     .pl-item:hover .del-btn { opacity:1; }
     .del-btn:hover { color:var(--danger); }
-    .empty-pl { padding:36px 16px; text-align:center; color:var(--muted); font-size:.8rem; line-height:1.7; }
-    .empty-pl .ico { font-size:1.8rem; display:block; margin-bottom:8px; }
-    .status-bar { text-align:center; padding:6px; font-size:.7rem; color:var(--muted); border-top:1px solid var(--border); font-family:'DM Mono',monospace; flex-shrink:0; }
+    .empty-pl { padding:32px 14px; text-align:center; color:var(--muted); font-size:.78rem; line-height:1.7; }
+    .empty-pl .ico { font-size:1.7rem; display:block; margin-bottom:8px; }
+    .status-bar { text-align:center; padding:5px; font-size:.68rem; color:var(--muted); border-top:1px solid var(--border); font-family:'DM Mono',monospace; flex-shrink:0; }
     .status-bar.err { color:var(--danger); }
 
-    /* ── MODAL ── */
+    /* ══════════════════ MODAL ══════════════════ */
     .modal-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px);
-      z-index:100; display:flex; align-items:center; justify-content:center;
+      z-index:150; display:flex; align-items:center; justify-content:center; padding:16px;
       opacity:0; pointer-events:none; transition:opacity .2s;
     }
     .modal-overlay.show { opacity:1; pointer-events:all; }
-    .modal-card {
-      background:var(--s1); border:1px solid var(--border); border-radius:16px;
-      padding:32px 28px; width:min(360px,90vw); animation:fadeUp .2s ease;
-    }
-    .modal-title { font-size:1rem; font-weight:700; margin-bottom:18px; }
-    .modal-input {
-      width:100%; background:var(--s2); border:1px solid var(--border);
-      border-radius:var(--radius); padding:11px 14px; color:var(--text);
-      font-family:'DM Sans',sans-serif; font-size:.88rem; outline:none;
-      transition:border-color .2s; margin-bottom:18px;
-    }
+    .modal-card { background:var(--s1); border:1px solid var(--border); border-radius:16px; padding:28px 24px; width:min(340px,100%); }
+    .modal-title { font-size:.95rem; font-weight:700; margin-bottom:16px; }
+    .modal-input { width:100%; background:var(--s2); border:1px solid var(--border); border-radius:var(--radius); padding:11px 14px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:.88rem; outline:none; transition:border-color .2s; margin-bottom:16px; }
     .modal-input:focus { border-color:var(--accent); }
     .modal-input.shake { animation:shake .4s ease; border-color:var(--danger); }
     .modal-actions { display:flex; gap:10px; justify-content:flex-end; }
-    .modal-cancel { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:.84rem; padding:9px 18px; cursor:pointer; transition:all .2s; }
-    .modal-cancel:hover { border-color:var(--text); color:var(--text); }
-    .modal-create { background:var(--accent); border:none; border-radius:8px; color:white; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.84rem; padding:9px 18px; cursor:pointer; transition:opacity .15s; }
+    .modal-cancel { background:none; border:1px solid var(--border); border-radius:8px; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:.82rem; padding:9px 16px; cursor:pointer; }
+    .modal-cancel:hover { color:var(--text); }
+    .modal-create { background:var(--accent); border:none; border-radius:8px; color:white; font-family:'DM Sans',sans-serif; font-weight:700; font-size:.82rem; padding:9px 16px; cursor:pointer; }
     .modal-create:hover { opacity:.85; }
 
-    /* ── TOAST ── */
-    .toast {
-      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(70px);
-      padding:10px 22px; background:var(--s3); border:1px solid var(--border);
-      border-radius:999px; font-size:.82rem; font-weight:500;
-      transition:transform .3s ease; z-index:200; pointer-events:none; white-space:nowrap;
-    }
+    /* TOAST */
+    .toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%) translateY(70px); padding:9px 20px; background:var(--s3); border:1px solid var(--border); border-radius:999px; font-size:.8rem; font-weight:500; transition:transform .3s; z-index:300; pointer-events:none; white-space:nowrap; }
     .toast.show { transform:translateX(-50%) translateY(0); }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width:900px) {
-      .main-layout { grid-template-columns: 0 1fr 300px !important; }
-      .sidebar { display:none; }
+    /* ══════════════════ MOBILE BOTTOM NAV ══════════════════ */
+    .mobile-nav {
+      display:none; flex-shrink:0;
+      background:rgba(8,8,16,.97); border-top:1px solid var(--border);
+      height:56px; padding:0 8px;
+      align-items:center; justify-content:space-around; gap:4px;
+      z-index:50;
     }
-    @media (max-width:640px) {
-      .main-layout { grid-template-columns: 1fr !important; }
-      .playlist-col { max-height:45vh; border-top:1px solid var(--border); }
-      .player-col { border-right:none; padding:16px; }
+    .mobile-nav-btn {
+      flex:1; height:100%; background:none; border:none;
+      color:var(--muted); cursor:pointer; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:3px; font-size:.58rem;
+      font-family:'DM Sans',sans-serif; transition:color .2s; touch-action:manipulation;
+      border-radius:8px;
+    }
+    .mobile-nav-btn svg { width:20px; height:20px; fill:currentColor; }
+    .mobile-nav-btn.active { color:var(--accent); }
+    .mobile-nav-btn:active { transform:scale(.93); }
+
+    /* ══════════════════ MOBILE PANELS ══════════════════ */
+    /* On mobile: stack views vertically, show one at a time */
+    .mobile-panel {
+      display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0;
+    }
+    .mobile-panel.active { display:flex; }
+
+    /* ══════════════════ RESPONSIVE ══════════════════ */
+
+    /* TABLET: hide sidebar, 2 cols */
+    @media (max-width: 900px) {
+      .desktop-layout { grid-template-columns: 0 1fr 280px; }
+      .sidebar { display:none; }
+      .sidebar-toggle { display:none; }
+    }
+
+    /* MOBILE: completely different layout */
+    @media (max-width: 600px) {
+      body { overflow:hidden; }
+
+      .topbar { padding:0 12px; height:50px; }
+      .topbar-logo { font-size:1.2rem; }
+      .user-badge { padding:4px 10px; font-size:.72rem; }
+      .logout-btn { font-size:.7rem; padding:4px 10px; }
+      .sidebar-toggle { display:none; }
+
+      /* Hide desktop layout */
+      .desktop-layout { display:none !important; }
+
+      /* Show mobile nav */
+      .mobile-nav { display:flex; }
+
+      /* Mobile player panel */
+      #mobilePlayer {
+        padding:14px 14px 10px;
+        gap:14px; background:var(--bg);
+      }
+      #mobilePlayer .add-form input { font-size:.72rem; padding:9px 12px; }
+      #mobilePlayer .add-btn { padding:9px 14px; font-size:.78rem; }
+      #mobilePlayer .np-title { font-size:.92rem; }
+      #mobilePlayer .video-wrap { border-radius:10px; }
+      #mobilePlayer .controls { gap:6px; }
+      #mobilePlayer .ctrl { width:36px; height:36px; }
+      #mobilePlayer .autoplay-row { font-size:.7rem; gap:6px; }
+
+      /* Mobile playlists panel */
+      #mobilePlaylists { background:var(--bg); }
+      .mobile-pl-header {
+        padding:14px 14px 10px;
+        display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+        border-bottom:1px solid var(--border);
+      }
+      .mobile-pl-header span { font-size:.62rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+      .mobile-pl-new {
+        background:var(--accent); border:none; border-radius:8px;
+        color:white; font-family:'DM Sans',sans-serif; font-weight:700;
+        font-size:.76rem; padding:6px 14px; cursor:pointer;
+      }
+      .mobile-sidebar-list { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:4px; }
+
+      /* Mobile tracks panel */
+      #mobileTracks { background:var(--bg); }
+      .mobile-tracks-header {
+        padding:14px 14px 10px; flex-shrink:0;
+        display:flex; align-items:center; justify-content:space-between;
+        border-bottom:1px solid var(--border);
+      }
+      .mobile-tracks-header h2 { font-size:.62rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
+      .mobile-tracks-list { flex:1; overflow-y:auto; padding:6px 8px 80px; display:flex; flex-direction:column; gap:4px; }
+
+      /* Mini player bar on mobile (tracks/playlists views) */
+      .mini-player-bar {
+        position:fixed; bottom:56px; left:0; right:0; z-index:40;
+        background:rgba(15,15,28,.98); border-top:1px solid var(--border);
+        padding:8px 14px; display:flex; align-items:center; gap:10px;
+      }
+      .mini-thumb { width:36px; height:36px; border-radius:6px; background:var(--border); flex-shrink:0; overflow:hidden; }
+      .mini-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+      .mini-info { flex:1; min-width:0; }
+      .mini-title { font-size:.75rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .mini-sub { font-size:.62rem; color:var(--muted); }
+      .mini-controls { display:flex; gap:6px; flex-shrink:0; }
+      .mini-btn { background:none; border:none; color:var(--text); cursor:pointer; padding:4px; touch-action:manipulation; }
+      .mini-btn svg { width:18px; height:18px; fill:currentColor; display:block; }
+    }
+
+    /* Very small screens */
+    @media (max-width: 360px) {
+      .login-card { padding:24px 16px; }
+      .user-btn { padding:14px 6px; }
+      .user-avatar { width:38px; height:38px; font-size:1rem; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════ LOGIN ═══════════════ -->
+<!-- ═══════ LOGIN ═══════ -->
 <div id="loginScreen">
-
-  <!-- User Selection -->
   <div id="userSelectView" class="login-card">
     <div class="login-logo">BRUNO<span>SOUND</span></div>
     <div class="login-sub">Tu espacio de música 🎵</div>
     <div class="login-label">¿Quién eres?</div>
     <div class="user-buttons">
-      <button class="user-btn julian" id="btn-julian" onclick="selectUser('julian')">
-        <div class="user-avatar">J</div>
-        <div class="user-btn-name">Julián</div>
+      <button class="user-btn julian"    onclick="selectUser('julian')">
+        <div class="user-avatar">J</div><div class="user-btn-name">Julián</div>
       </button>
-      <button class="user-btn alejandra" id="btn-alejandra" onclick="selectUser('alejandra')">
-        <div class="user-avatar">A</div>
-        <div class="user-btn-name">Alejandra</div>
+      <button class="user-btn alejandra" onclick="selectUser('alejandra')">
+        <div class="user-avatar">A</div><div class="user-btn-name">Alejandra</div>
       </button>
-      <button class="user-btn invitado" id="btn-invitado" onclick="selectUser('invitado')">
-        <div class="user-avatar">I</div>
-        <div class="user-btn-name">Invitado</div>
+      <button class="user-btn invitado"  onclick="selectUser('invitado')">
+        <div class="user-avatar">I</div><div class="user-btn-name">Invitado</div>
       </button>
     </div>
   </div>
 
-  <!-- PIN Entry -->
   <div id="pinView" class="login-card" style="display:none;">
     <button class="back-btn" onclick="backToUserSelect()">← Volver</button>
     <div class="login-logo" id="pinUserName">USUARIO</div>
     <div class="login-sub">Ingresa tu PIN</div>
     <div class="pin-dots" id="pinDots">
-      <div class="pin-dot" id="dot0"></div>
-      <div class="pin-dot" id="dot1"></div>
-      <div class="pin-dot" id="dot2"></div>
-      <div class="pin-dot" id="dot3"></div>
+      <div class="pin-dot" id="dot0"></div><div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div><div class="pin-dot" id="dot3"></div>
     </div>
     <div class="pin-error" id="pinError">PIN incorrecto</div>
     <div class="numpad">
-      <button onclick="pinDigit('1')">1</button>
-      <button onclick="pinDigit('2')">2</button>
-      <button onclick="pinDigit('3')">3</button>
-      <button onclick="pinDigit('4')">4</button>
-      <button onclick="pinDigit('5')">5</button>
-      <button onclick="pinDigit('6')">6</button>
-      <button onclick="pinDigit('7')">7</button>
-      <button onclick="pinDigit('8')">8</button>
-      <button onclick="pinDigit('9')">9</button>
-      <div class="empty"></div>
-      <button onclick="pinDigit('0')">0</button>
-      <button onclick="pinDelete()">⌫</button>
+      <button onclick="pinDigit('1')">1</button><button onclick="pinDigit('2')">2</button><button onclick="pinDigit('3')">3</button>
+      <button onclick="pinDigit('4')">4</button><button onclick="pinDigit('5')">5</button><button onclick="pinDigit('6')">6</button>
+      <button onclick="pinDigit('7')">7</button><button onclick="pinDigit('8')">8</button><button onclick="pinDigit('9')">9</button>
+      <div class="empty"></div><button onclick="pinDigit('0')">0</button><button onclick="pinDelete()">⌫</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ APP ═══════════════ -->
+<!-- ═══════ APP ═══════ -->
 <div id="app">
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="topbar-left">
-      <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()" title="Playlists">☰</button>
+      <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
       <div class="topbar-logo">BRUNO<span>SOUND</span></div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div class="user-badge" id="userBadge">
-        <div class="dot"></div>
-        <span id="userBadgeName"></span>
-      </div>
-      <button class="logout-btn" onclick="logout()">Cambiar usuario</button>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="user-badge" id="userBadge"><div class="dot"></div><span id="userBadgeName"></span></div>
+      <button class="logout-btn" onclick="logout()">Salir</button>
     </div>
   </div>
 
-  <div class="main-layout" id="mainLayout">
-
-    <!-- ← SIDEBAR: MIS PLAYLISTS -->
+  <!-- ══ DESKTOP 3-COL ══ -->
+  <div class="desktop-layout" id="desktopLayout">
+    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <span>Mis Playlists</span>
-        <button class="pl-new-btn" id="newPlaylistBtn" onclick="openModal()" title="Nueva playlist">+</button>
+        <button class="pl-new-btn" onclick="openModal()" title="Nueva playlist">+</button>
       </div>
-      <div class="sidebar-list" id="sidebarList">
-        <div class="sidebar-empty">Cargando...</div>
-      </div>
+      <div class="sidebar-list" id="sidebarList"><div class="sidebar-empty">Cargando...</div></div>
     </div>
 
-    <!-- CENTER: PLAYER -->
+    <!-- Player -->
     <div class="player-col">
       <div class="add-section">
         <label>Agregar canción de YouTube</label>
         <div class="add-form">
-          <input type="text" id="urlInput" placeholder="https://youtu.be/... o youtube.com/watch?v=..." />
+          <input type="text" id="urlInput" placeholder="https://youtu.be/..." />
           <button class="add-btn" id="addBtn" onclick="addTrack()">+ Agregar</button>
         </div>
       </div>
-
       <div>
         <div class="np-label" id="npLabel">Reproduciendo</div>
         <div class="np-title" id="npTitle">— Ninguna canción —</div>
       </div>
-
       <div class="video-wrap">
         <div class="video-placeholder" id="videoPlaceholder">
-          <div class="ico">🎵</div>
-          <p>Selecciona una playlist y agrega canciones</p>
+          <div class="ico">🎵</div><p>Selecciona una playlist y agrega canciones</p>
         </div>
         <div id="ytPlayer"></div>
       </div>
-
       <div class="controls">
-        <button class="ctrl" onclick="prevTrack()" title="Anterior">
-          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
-        </button>
-        <button class="ctrl" onclick="nextTrack()" title="Siguiente">
-          <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-        </button>
-        <button class="ctrl" id="shuffleBtn" onclick="toggleShuffle()" title="Aleatorio">
-          <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
-        </button>
-        <label class="autoplay-row">
-          <span>Autoplay</span>
-          <div class="pill on" id="autoplayPill" onclick="toggleAutoplay()"></div>
-        </label>
+        <button class="ctrl" onclick="prevTrack()"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+        <button class="ctrl" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+        <button class="ctrl" id="shuffleBtn" onclick="toggleShuffle()"><svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+        <label class="autoplay-row"><span>Autoplay</span><div class="pill on" id="autoplayPill" onclick="toggleAutoplay()"></div></label>
       </div>
     </div>
 
-    <!-- → TRACKS DE LA PLAYLIST ACTIVA -->
+    <!-- Tracks -->
     <div class="playlist-col">
       <div class="pl-header">
         <h2 id="plHeaderName">Playlist</h2>
         <span class="pl-count" id="plCount">0 canciones</span>
       </div>
-      <div class="pl-list" id="plList">
-        <div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div>
-      </div>
+      <div class="pl-list" id="plList"><div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div></div>
       <div class="status-bar" id="statusBar">Iniciando...</div>
     </div>
   </div>
+
+  <!-- ══ MOBILE PANELS ══ -->
+
+  <!-- Panel 1: Player -->
+  <div class="mobile-panel active" id="mobilePlayer">
+    <div class="add-section" style="flex-shrink:0;">
+      <label style="font-size:.6rem;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:block;">Agregar canción</label>
+      <div class="add-form">
+        <input type="text" id="urlInputMobile" placeholder="https://youtu.be/..." />
+        <button class="add-btn" onclick="addTrackMobile()">+</button>
+      </div>
+    </div>
+    <div style="flex-shrink:0;">
+      <div class="np-label" id="npLabelMobile">Reproduciendo</div>
+      <div class="np-title" id="npTitleMobile">— Ninguna canción —</div>
+    </div>
+    <div class="video-wrap" style="flex-shrink:0;">
+      <div class="video-placeholder" id="videoPlaceholderMobile">
+        <div class="ico">🎵</div><p>Selecciona una playlist y agrega canciones</p>
+      </div>
+      <div id="ytPlayerMobile"></div>
+    </div>
+    <div class="controls" style="flex-shrink:0;">
+      <button class="ctrl" onclick="prevTrack()"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg></button>
+      <button class="ctrl" onclick="nextTrack()"><svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
+      <button class="ctrl" id="shuffleBtnMobile" onclick="toggleShuffle()"><svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg></button>
+      <label class="autoplay-row"><span>Auto</span><div class="pill on" id="autoplayPillMobile" onclick="toggleAutoplay()"></div></label>
+    </div>
+  </div>
+
+  <!-- Panel 2: Playlists -->
+  <div class="mobile-panel" id="mobilePlaylists">
+    <div class="mobile-pl-header">
+      <span>Mis Playlists</span>
+      <button class="mobile-pl-new" onclick="openModal()">+ Nueva</button>
+    </div>
+    <div class="mobile-sidebar-list" id="mobileSidebarList"><div class="sidebar-empty">Cargando...</div></div>
+  </div>
+
+  <!-- Panel 3: Tracks -->
+  <div class="mobile-panel" id="mobileTracks">
+    <div class="mobile-tracks-header">
+      <h2 id="plHeaderNameMobile">Playlist</h2>
+      <span class="pl-count" id="plCountMobile">0 canciones</span>
+    </div>
+    <div class="mobile-tracks-list" id="plListMobile"><div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div></div>
+    <div class="status-bar" id="statusBarMobile" style="position:fixed;bottom:112px;left:0;right:0;">Iniciando...</div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-btn active" id="navPlayer" onclick="switchMobileTab('player')">
+      <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+      Reproducir
+    </button>
+    <button class="mobile-nav-btn" id="navPlaylists" onclick="switchMobileTab('playlists')">
+      <svg viewBox="0 0 24 24"><path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/></svg>
+      Playlists
+    </button>
+    <button class="mobile-nav-btn" id="navTracks" onclick="switchMobileTab('tracks')">
+      <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+      Canciones
+    </button>
+  </div>
 </div>
 
-<!-- ═══════════════ MODAL NUEVA PLAYLIST ═══════════════ -->
+<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="onModalBg(event)">
   <div class="modal-card">
     <div class="modal-title">Nueva Playlist</div>
@@ -512,18 +612,12 @@
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-  /* ══════════════════════════════════════════
-     USERS CONFIG
-  ══════════════════════════════════════════ */
   const USERS = {
-    julian:    { name: 'Julián',    pin: '1998', color: 'julian',    avatar: 'J' },
-    alejandra: { name: 'Alejandra', pin: '2002', color: 'alejandra', avatar: 'A' },
-    invitado:  { name: 'Invitado',  pin: null,   color: 'invitado',  avatar: 'I' },
+    julian:    { name:'Julián',    pin:'1998', color:'julian',    avatar:'J' },
+    alejandra: { name:'Alejandra', pin:'2002', color:'alejandra', avatar:'A' },
+    invitado:  { name:'Invitado',  pin:null,   color:'invitado',  avatar:'I' },
   };
 
-  /* ══════════════════════════════════════════
-     STATE
-  ══════════════════════════════════════════ */
   let currentUser   = sessionStorage.getItem('bs_user') || null;
   let selectedUser  = null;
   let enteredPin    = '';
@@ -539,22 +633,20 @@
   let tracksUnsub   = null;
   let firebaseOk    = false;
   let sidebarOpen   = true;
+  let isMobile      = () => window.innerWidth <= 600;
 
   function waitForFirebase(cb) {
     if (window._firebaseReady) { cb(); return; }
-    window.addEventListener('firebaseReady', cb, { once: true });
+    window.addEventListener('firebaseReady', cb, { once:true });
   }
 
-  /* ══════════════════════════════════════════
-     LOGIN / PIN
-  ══════════════════════════════════════════ */
+  /* ── LOGIN ── */
   function selectUser(user) {
     selectedUser = user;
     if (!USERS[user].pin) { doLogin(user); return; }
     enteredPin = '';
     document.getElementById('userSelectView').style.display = 'none';
-    const pv = document.getElementById('pinView');
-    pv.style.display = 'block';
+    document.getElementById('pinView').style.display = 'block';
     const logo = document.getElementById('pinUserName');
     logo.textContent = USERS[user].name.toUpperCase();
     logo.className = `login-logo ${user}`;
@@ -570,31 +662,19 @@
 
   function pinDigit(d) {
     if (enteredPin.length >= 4) return;
-    enteredPin += d;
-    updatePinDots();
+    enteredPin += d; updatePinDots();
     if (enteredPin.length === 4) setTimeout(checkPin, 160);
   }
-
-  function pinDelete() {
-    enteredPin = enteredPin.slice(0, -1);
-    updatePinDots();
-  }
-
+  function pinDelete() { enteredPin = enteredPin.slice(0,-1); updatePinDots(); }
   function updatePinDots() {
-    for (let i = 0; i < 4; i++) {
-      document.getElementById(`dot${i}`).classList.toggle('filled', i < enteredPin.length);
-    }
+    for (let i=0;i<4;i++) document.getElementById(`dot${i}`).classList.toggle('filled', i < enteredPin.length);
   }
-
   function checkPin() {
-    if (enteredPin === USERS[selectedUser].pin) {
-      doLogin(selectedUser);
-    } else {
-      const dots = document.getElementById('pinDots');
-      dots.classList.add('shake');
-      document.getElementById('pinError').style.opacity = '1';
-      setTimeout(() => { dots.classList.remove('shake'); enteredPin = ''; updatePinDots(); }, 600);
-    }
+    if (enteredPin === USERS[selectedUser].pin) { doLogin(selectedUser); return; }
+    const dots = document.getElementById('pinDots');
+    dots.classList.add('shake');
+    document.getElementById('pinError').style.opacity = '1';
+    setTimeout(() => { dots.classList.remove('shake'); enteredPin = ''; updatePinDots(); }, 600);
   }
 
   function doLogin(user) {
@@ -604,7 +684,8 @@
     document.getElementById('app').classList.add('visible');
     document.getElementById('userBadge').className = `user-badge ${user}`;
     document.getElementById('userBadgeName').textContent = USERS[user].name;
-    document.getElementById('npLabel').className = `np-label ${user}`;
+    document.getElementById('npLabel').className  = `np-label ${user}`;
+    document.getElementById('npLabelMobile').className = `np-label ${user}`;
     waitForFirebase(initFirebase);
   }
 
@@ -618,39 +699,33 @@
     document.getElementById('app').classList.remove('visible');
     document.getElementById('pinView').style.display = 'none';
     document.getElementById('userSelectView').style.display = 'block';
-    document.getElementById('npTitle').textContent = '— Ninguna canción —';
-    document.getElementById('videoPlaceholder').style.display = 'flex';
+    ['npTitle','npTitleMobile'].forEach(id => document.getElementById(id).textContent = '— Ninguna canción —');
+    ['videoPlaceholder','videoPlaceholderMobile'].forEach(id => document.getElementById(id).style.display = 'flex');
     if (player && player.stopVideo) player.stopVideo();
     firebaseOk = false;
     renderPlaylist(); renderSidebar();
   }
 
-  /* ══════════════════════════════════════════
-     FIREBASE
-  ══════════════════════════════════════════ */
+  /* ── FIREBASE ── */
   function initFirebase() {
     const scriptText = document.querySelector('script[type="module"]').textContent;
     const isDemo = !window._db || scriptText.includes('"TU_API_KEY"');
     if (isDemo) { setStatus('⚠ Sin Firebase · local'); loadLocalPlaylists(); return; }
-    firebaseOk = true;
-    subscribeToLists();
+    firebaseOk = true; subscribeToLists();
   }
 
   function subscribeToLists() {
     const { collection, query, orderBy, onSnapshot } = window._fsLib;
-    const q = query(collection(window._db, `playlists/${currentUser}/lists`), orderBy('createdAt', 'asc'));
+    const q = query(collection(window._db, `playlists/${currentUser}/lists`), orderBy('createdAt','asc'));
     listsUnsub = onSnapshot(q, async (snap) => {
-      userPlaylists = snap.docs.map(d => ({ listId: d.id, ...d.data() }));
-      if (userPlaylists.length === 0) { await createPlaylist('Mi Mix', true); return; }
+      userPlaylists = snap.docs.map(d => ({ listId:d.id, ...d.data() }));
+      if (!userPlaylists.length) { await createPlaylist('Mi Mix', true); return; }
       renderSidebar();
-      // Solo cambiar playlist si no hay ninguna activa o si la activa fue eliminada
       const stillExists = userPlaylists.find(l => l.listId === activeListId);
-      if (!activeListId || !stillExists) {
-        switchPlaylist(userPlaylists[0].listId);
-      }
-      // Si ya existe la playlist activa, solo actualizar el nombre en el header
+      if (!activeListId || !stillExists) switchPlaylist(userPlaylists[0].listId);
       else if (stillExists) {
         document.getElementById('plHeaderName').textContent = stillExists.name;
+        document.getElementById('plHeaderNameMobile').textContent = stillExists.name;
       }
     });
   }
@@ -659,40 +734,40 @@
     if (tracksUnsub) { tracksUnsub(); tracksUnsub = null; }
     playlist = []; currentIndex = -1; renderPlaylist();
     const { collection, query, orderBy, onSnapshot } = window._fsLib;
-    const q = query(collection(window._db, `playlists/${currentUser}/lists/${listId}/tracks`), orderBy('addedAt', 'asc'));
+    const q = query(collection(window._db, `playlists/${currentUser}/lists/${listId}/tracks`), orderBy('addedAt','asc'));
     tracksUnsub = onSnapshot(q, (snap) => {
       const prev = playlist.length;
-      playlist = snap.docs.map(d => ({ docId: d.id, ...d.data() }));
-      setStatus(`● Sincronizado · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+      playlist = snap.docs.map(d => ({ docId:d.id, ...d.data() }));
+      setStatus(`● Sync · ${playlist.length} canción${playlist.length!==1?'es':''}`);
       renderPlaylist();
       if (prev === 0 && playlist.length > 0) playAt(0);
-    }, err => { console.error(err); setStatus('⚠ Error de conexión', true); });
+    }, err => { console.error(err); setStatus('⚠ Error', true); });
   }
 
-  async function createPlaylist(name, silent = false) {
+  async function createPlaylist(name, silent=false) {
     if (!name || !name.trim()) return;
     const cleanName = name.trim();
     if (firebaseOk) {
       const { doc, setDoc } = window._fsLib;
       const listId = `list_${Date.now()}`;
-      await setDoc(doc(window._db, `playlists/${currentUser}/lists`, listId), { name: cleanName, createdAt: Date.now() });
+      await setDoc(doc(window._db, `playlists/${currentUser}/lists`, listId), { name:cleanName, createdAt:Date.now() });
     } else {
       const listId = `list_${Date.now()}`;
-      userPlaylists.push({ listId, name: cleanName, createdAt: Date.now() });
+      userPlaylists.push({ listId, name:cleanName, createdAt:Date.now() });
       saveLocalPlaylists(); renderSidebar();
       if (!activeListId) switchPlaylist(listId);
     }
-    if (!silent) toast(`✓ Playlist "${cleanName}" creada`);
+    if (!silent) toast(`✓ "${cleanName}" creada`);
   }
 
   async function deletePlaylist(listId) {
     const pl = userPlaylists.find(l => l.listId === listId);
     if (!pl) return;
-    if (!confirm(`¿Eliminar "${pl.name}"?\nSe perderán todas sus canciones.`)) return;
+    if (!confirm(`¿Eliminar "${pl.name}"?`)) return;
     if (firebaseOk) {
       const { collection, getDocs, deleteDoc, doc } = window._fsLib;
       const tSnap = await getDocs(collection(window._db, `playlists/${currentUser}/lists/${listId}/tracks`));
-      for (const d of tSnap.docs) await deleteDoc(doc(window._db, `playlists/${currentUser}/lists/${listId}/tracks`, d.id));
+      for (const d of tSnap.docs) await deleteDoc(d.ref);
       await deleteDoc(doc(window._db, `playlists/${currentUser}/lists`, listId));
     } else {
       userPlaylists = userPlaylists.filter(l => l.listId !== listId);
@@ -702,52 +777,47 @@
     if (activeListId === listId) {
       activeListId = null; playlist = []; currentIndex = -1; renderPlaylist();
       const rem = userPlaylists.filter(l => l.listId !== listId);
-      if (rem.length > 0) switchPlaylist(rem[0].listId);
+      if (rem.length) switchPlaylist(rem[0].listId);
     }
     renderSidebar(); toast('Playlist eliminada');
   }
 
   function switchPlaylist(listId) {
-    // Si ya estamos en esta playlist, no hacer nada
     if (activeListId === listId && tracksUnsub) return;
-    activeListId = listId;
-    currentIndex = -1;
+    activeListId = listId; currentIndex = -1;
     if (player && player.pauseVideo) player.pauseVideo();
-    document.getElementById('npTitle').textContent = '— Ninguna canción —';
-    document.getElementById('videoPlaceholder').style.display = 'flex';
+    ['npTitle','npTitleMobile'].forEach(id => document.getElementById(id).textContent = '— Ninguna canción —');
+    ['videoPlaceholder','videoPlaceholderMobile'].forEach(id => document.getElementById(id).style.display = 'flex');
     const pl = userPlaylists.find(l => l.listId === listId);
-    if (pl) document.getElementById('plHeaderName').textContent = pl.name;
+    if (pl) {
+      document.getElementById('plHeaderName').textContent = pl.name;
+      document.getElementById('plHeaderNameMobile').textContent = pl.name;
+    }
     renderSidebar();
-    if (firebaseOk) {
-      subscribeToTracks(listId);
-    } else {
+    if (firebaseOk) subscribeToTracks(listId);
+    else {
       playlist = JSON.parse(localStorage.getItem(`bs_${currentUser}_${listId}`) || '[]');
-      setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
+      setStatus(`Local · ${playlist.length} canción${playlist.length!==1?'es':''}`);
       renderPlaylist(); if (playlist.length) playAt(0);
     }
   }
 
-  /* ══════════════════════════════════════════
-     LOCAL MODE
-  ══════════════════════════════════════════ */
   function loadLocalPlaylists() {
     userPlaylists = JSON.parse(localStorage.getItem(`bs_${currentUser}_lists`) || '[]');
     if (!userPlaylists.length) { createPlaylist('Mi Mix', true); return; }
     renderSidebar();
     if (!activeListId) switchPlaylist(userPlaylists[0].listId);
   }
-  function saveLocalPlaylists() {
-    localStorage.setItem(`bs_${currentUser}_lists`, JSON.stringify(userPlaylists));
+  function saveLocalPlaylists() { localStorage.setItem(`bs_${currentUser}_lists`, JSON.stringify(userPlaylists)); }
+
+  function setStatus(msg, err=false) {
+    ['statusBar','statusBarMobile'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = msg; el.className = 'status-bar' + (err?' err':'');
+    });
   }
 
-  function setStatus(msg, err = false) {
-    const el = document.getElementById('statusBar');
-    el.textContent = msg; el.className = 'status-bar' + (err ? ' err' : '');
-  }
-
-  /* ══════════════════════════════════════════
-     UTILS
-  ══════════════════════════════════════════ */
+  /* ── UTILS ── */
   function extractId(url) {
     const m = url.match(/(?:v=|\/embed\/|\/shorts\/|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     return m ? m[1] : null;
@@ -756,20 +826,19 @@
   function toast(msg) {
     const t = document.getElementById('toast');
     t.textContent = msg; t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2400);
+    clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2400);
   }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-  /* ══════════════════════════════════════════
-     ADD / REMOVE TRACK
-  ══════════════════════════════════════════ */
-  async function addTrack() {
-    if (!activeListId) { toast('⚠ Selecciona una playlist primero'); return; }
-    const input = document.getElementById('urlInput');
+  /* ── ADD TRACK ── */
+  async function addTrack() { await _addTrack(document.getElementById('urlInput')); }
+  async function addTrackMobile() { await _addTrack(document.getElementById('urlInputMobile')); }
+  async function _addTrack(input) {
+    if (!activeListId) { toast('⚠ Selecciona una playlist'); return; }
     const url = input.value.trim(); if (!url) return;
     const videoId = extractId(url);
     if (!videoId) { toast('⚠ Link inválido'); return; }
-    if (playlist.some(t => t.id === videoId)) { toast('Ya está en la lista'); input.value = ''; return; }
+    if (playlist.some(t => t.id === videoId)) { toast('Ya está en la lista'); input.value=''; return; }
     const btn = document.getElementById('addBtn');
     btn.disabled = true; btn.textContent = '...';
     let title = `Video ${videoId}`;
@@ -777,17 +846,17 @@
       const r = await fetch(`https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${videoId}&format=json`);
       if (r.ok) title = (await r.json()).title;
     } catch(e) {}
-    const track = { id: videoId, title, url: `https://youtu.be/${videoId}`, addedAt: Date.now() };
+    const track = { id:videoId, title, url:`https://youtu.be/${videoId}`, addedAt:Date.now() };
     if (firebaseOk) {
       const { doc, setDoc } = window._fsLib;
       await setDoc(doc(window._db, `playlists/${currentUser}/lists/${activeListId}/tracks`, videoId), track);
     } else {
       playlist.push(track);
       localStorage.setItem(`bs_${currentUser}_${activeListId}`, JSON.stringify(playlist));
-      setStatus(`Local · ${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`);
-      renderPlaylist(); if (playlist.length === 1) playAt(0);
+      setStatus(`Local · ${playlist.length} canción${playlist.length!==1?'es':''}`);
+      renderPlaylist(); if (playlist.length===1) playAt(0);
     }
-    input.value = ''; btn.disabled = false; btn.textContent = '+ Agregar';
+    input.value=''; btn.disabled=false; btn.textContent='+ Agregar';
     toast('✓ Canción agregada');
   }
 
@@ -799,9 +868,9 @@
     } else {
       const idx = playlist.findIndex(t => t.id === videoId);
       if (idx !== -1) {
-        if (currentIndex === idx) currentIndex = -1;
-        else if (currentIndex > idx) currentIndex--;
-        playlist.splice(idx, 1);
+        if (currentIndex===idx) currentIndex=-1;
+        else if (currentIndex>idx) currentIndex--;
+        playlist.splice(idx,1);
         localStorage.setItem(`bs_${currentUser}_${activeListId}`, JSON.stringify(playlist));
         renderPlaylist();
       }
@@ -809,14 +878,14 @@
     toast('Eliminada');
   }
 
-  /* ══════════════════════════════════════════
-     PLAYBACK
-  ══════════════════════════════════════════ */
+  /* ── PLAYBACK ── */
   function playAt(index) {
     if (index < 0 || index >= playlist.length) return;
     currentIndex = index;
-    document.getElementById('npTitle').textContent = playlist[index].title;
-    document.getElementById('videoPlaceholder').style.display = 'none';
+    const title = playlist[index].title;
+    document.getElementById('npTitle').textContent = title;
+    document.getElementById('npTitleMobile').textContent = title;
+    ['videoPlaceholder','videoPlaceholderMobile'].forEach(id => document.getElementById(id).style.display = 'none');
     if (playerReady) {
       player.loadVideoById(playlist[index].id);
       try { player.unMute(); player.setVolume(100); } catch(e) {}
@@ -825,137 +894,137 @@
   }
   function nextTrack() {
     if (!playlist.length) return;
-    if (shuffle) { let n; do { n = Math.floor(Math.random()*playlist.length); } while (playlist.length>1 && n===currentIndex); playAt(n); }
-    else { playAt((currentIndex + 1) % playlist.length); }
+    if (shuffle) { let n; do { n=Math.floor(Math.random()*playlist.length); } while (playlist.length>1 && n===currentIndex); playAt(n); }
+    else playAt((currentIndex+1) % playlist.length);
   }
   function prevTrack() {
     if (!playlist.length) return;
-    playAt((currentIndex - 1 + playlist.length) % playlist.length);
+    playAt((currentIndex-1+playlist.length) % playlist.length);
   }
   function toggleShuffle() {
     shuffle = !shuffle;
     document.getElementById('shuffleBtn').classList.toggle('on', shuffle);
+    document.getElementById('shuffleBtnMobile').classList.toggle('on', shuffle);
     toast(shuffle ? '🔀 Aleatorio ON' : '🔀 Aleatorio OFF');
   }
   function toggleAutoplay() {
     autoplay = !autoplay;
     document.getElementById('autoplayPill').classList.toggle('on', autoplay);
+    document.getElementById('autoplayPillMobile').classList.toggle('on', autoplay);
   }
 
-  /* ══════════════════════════════════════════
-     YOUTUBE API
-  ══════════════════════════════════════════ */
+  /* ── YOUTUBE API ── */
   function onYouTubeIframeAPIReady() {
-    player = new YT.Player('ytPlayer', {
-      height: '100%', width: '100%',
-      playerVars: { autoplay: 1, rel: 0, modestbranding: 1, playsinline: 1 },
-      events: {
+    const containerId = isMobile() ? 'ytPlayerMobile' : 'ytPlayer';
+    player = new YT.Player(containerId, {
+      height:'100%', width:'100%',
+      playerVars:{ autoplay:1, rel:0, modestbranding:1, playsinline:1 },
+      events:{
         onReady: () => {
           playerReady = true;
           try { player.unMute(); player.setVolume(100); } catch(e) {}
-          if (currentIndex >= 0 && playlist[currentIndex]) {
-            player.loadVideoById(playlist[currentIndex].id);
-          }
+          if (currentIndex >= 0 && playlist[currentIndex]) player.loadVideoById(playlist[currentIndex].id);
         },
-        onStateChange: (e) => { if (e.data === YT.PlayerState.ENDED && autoplay) nextTrack(); }
+        onStateChange: (e) => { if (e.data===YT.PlayerState.ENDED && autoplay) nextTrack(); }
       }
     });
   }
 
-  /* ══════════════════════════════════════════
-     SIDEBAR
-  ══════════════════════════════════════════ */
+  /* ── SIDEBAR RENDER ── */
   function renderSidebar() {
-    const list = document.getElementById('sidebarList');
-    if (!userPlaylists.length) {
-      list.innerHTML = `<div class="sidebar-empty">Crea tu primera playlist con el botón <strong>+</strong></div>`;
-      return;
-    }
-    list.innerHTML = userPlaylists.map(pl => `
-      <div class="sidebar-pl-item ${pl.listId === activeListId ? 'active' : ''} ${currentUser}" onclick="switchPlaylist('${pl.listId}')">
-        <div class="sidebar-pl-icon">${pl.listId === activeListId ? '▶' : '♪'}</div>
-        <div class="sidebar-pl-info">
+    const html = !userPlaylists.length
+      ? `<div class="sidebar-empty">Crea tu primera playlist con <strong>+</strong></div>`
+      : userPlaylists.map(pl => `
+        <div class="sidebar-pl-item ${pl.listId===activeListId?'active':''} ${currentUser||''}" onclick="switchPlaylist('${pl.listId}')">
+          <div class="sidebar-pl-icon">${pl.listId===activeListId?'▶':'♪'}</div>
           <div class="sidebar-pl-name">${esc(pl.name)}</div>
-        </div>
-        <button class="sidebar-del" onclick="deletePlaylist('${pl.listId}');event.stopPropagation();" title="Eliminar playlist">
-          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-        </button>
-      </div>
-    `).join('');
+          <button class="sidebar-del" onclick="deletePlaylist('${pl.listId}');event.stopPropagation();" title="Eliminar">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>`).join('');
+    document.getElementById('sidebarList').innerHTML = html;
+    document.getElementById('mobileSidebarList').innerHTML = html;
   }
 
   function toggleSidebar() {
     sidebarOpen = !sidebarOpen;
     document.getElementById('sidebar').classList.toggle('hidden', !sidebarOpen);
-    document.getElementById('mainLayout').classList.toggle('no-sidebar', !sidebarOpen);
   }
 
-  /* ══════════════════════════════════════════
-     MODAL
-  ══════════════════════════════════════════ */
+  /* ── MOBILE TAB NAV ── */
+  function switchMobileTab(tab) {
+    ['mobilePlayer','mobilePlaylists','mobileTracks'].forEach(id => {
+      document.getElementById(id).classList.toggle('active', id === `mobile${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+    });
+    ['navPlayer','navPlaylists','navTracks'].forEach(id => {
+      document.getElementById(id).classList.toggle('active',
+        id === `nav${tab.charAt(0).toUpperCase()+tab.slice(1)}`);
+    });
+  }
+
+  /* ── TRACKS RENDER ── */
+  function renderPlaylist() {
+    const count = `${playlist.length} canción${playlist.length!==1?'es':''}`;
+    document.getElementById('plCount').textContent = count;
+    document.getElementById('plCountMobile').textContent = count;
+
+    const html = !playlist.length
+      ? `<div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.<br>Pega un link arriba.</div>`
+      : playlist.map((t,i) => `
+        <div class="pl-item ${i===currentIndex?'active':''} ${currentUser||''}" onclick="playAt(${i})">
+          <div class="pl-thumb">
+            <img src="${thumb(t.id)}" alt="" loading="lazy"/>
+            <div class="pl-num">${i===currentIndex?'▶':i+1}</div>
+          </div>
+          <div class="pl-info">
+            <div class="pl-title">${esc(t.title)}</div>
+            <div class="pl-url">youtu.be/${esc(t.id)}</div>
+          </div>
+          ${i===currentIndex?`<div class="playing-bar"><span></span><span></span><span></span></div>`:''}
+          <button class="del-btn" onclick="removeTrack(event,'${t.id}')" title="Eliminar">
+            <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>`).join('');
+
+    document.getElementById('plList').innerHTML = html;
+    document.getElementById('plListMobile').innerHTML = html;
+  }
+
+  /* ── MODAL ── */
   function openModal() {
     document.getElementById('modalOverlay').classList.add('show');
     document.getElementById('playlistNameInput').value = '';
     setTimeout(() => document.getElementById('playlistNameInput').focus(), 100);
   }
   function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
-  function onModalBg(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+  function onModalBg(e) { if (e.target===document.getElementById('modalOverlay')) closeModal(); }
   function confirmNewPlaylist() {
     const input = document.getElementById('playlistNameInput');
     const name = input.value.trim();
     if (!name) { input.classList.add('shake'); setTimeout(() => input.classList.remove('shake'), 500); return; }
-    createPlaylist(name);
-    closeModal();
+    createPlaylist(name); closeModal();
   }
 
-  /* ══════════════════════════════════════════
-     RENDER TRACKS
-  ══════════════════════════════════════════ */
-  function renderPlaylist() {
-    const list = document.getElementById('plList');
-    document.getElementById('plCount').textContent = `${playlist.length} canción${playlist.length !== 1 ? 'es' : ''}`;
-    if (!playlist.length) {
-      list.innerHTML = `<div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.<br>Pega un link arriba.</div>`;
-      return;
-    }
-    list.innerHTML = playlist.map((t, i) => `
-      <div class="pl-item ${i === currentIndex ? 'active' : ''} ${currentUser}" onclick="playAt(${i})">
-        <div class="pl-thumb">
-          <img src="${thumb(t.id)}" alt="" loading="lazy" />
-          <div class="pl-num">${i === currentIndex ? '▶' : i+1}</div>
-        </div>
-        <div class="pl-info">
-          <div class="pl-title">${esc(t.title)}</div>
-          <div class="pl-url">youtu.be/${esc(t.id)}</div>
-        </div>
-        ${i === currentIndex ? `<div class="playing-bar"><span></span><span></span><span></span></div>` : ''}
-        <button class="del-btn" onclick="removeTrack(event,'${t.id}')" title="Eliminar">
-          <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-        </button>
-      </div>`).join('');
-  }
-
-  /* ══════════════════════════════════════════
-     KEYBOARD
-  ══════════════════════════════════════════ */
+  /* ── KEYBOARD ── */
   document.addEventListener('keydown', e => {
     if (document.getElementById('pinView').style.display !== 'none') {
-      if (e.key >= '0' && e.key <= '9') pinDigit(e.key);
-      if (e.key === 'Backspace') pinDelete();
+      if (e.key>='0' && e.key<='9') pinDigit(e.key);
+      if (e.key==='Backspace') pinDelete();
       return;
     }
     if (document.getElementById('modalOverlay').classList.contains('show')) {
-      if (e.key === 'Enter') confirmNewPlaylist();
-      if (e.key === 'Escape') closeModal();
+      if (e.key==='Enter') confirmNewPlaylist();
+      if (e.key==='Escape') closeModal();
       return;
     }
-    if (e.target.tagName === 'INPUT') return;
-    if (e.key === 'ArrowRight') nextTrack();
-    if (e.key === 'ArrowLeft')  prevTrack();
+    if (e.target.tagName==='INPUT') return;
+    if (e.key==='ArrowRight') nextTrack();
+    if (e.key==='ArrowLeft')  prevTrack();
   });
-  document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key === 'Enter') addTrack(); });
+  document.getElementById('urlInput').addEventListener('keydown', e => { if (e.key==='Enter') addTrack(); });
+  document.getElementById('urlInputMobile').addEventListener('keydown', e => { if (e.key==='Enter') addTrackMobile(); });
 
-  // Auto-login si hay sesión activa
+  // Auto-login
   if (currentUser && USERS[currentUser]) doLogin(currentUser);
 </script>
 </body>
