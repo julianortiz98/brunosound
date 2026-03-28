@@ -294,6 +294,23 @@
     .status-bar { text-align:center; padding:5px; font-size:.68rem; color:var(--muted); border-top:1px solid var(--border); font-family:'DM Mono',monospace; flex-shrink:0; }
     .status-bar.err { color:var(--danger); }
 
+
+    /* ══ SEARCH BAR ══ */
+    .search-wrap {
+      padding:0 8px 8px; flex-shrink:0;
+    }
+    .search-input {
+      width:100%; background:var(--s2); border:1px solid var(--border);
+      border-radius:var(--radius); padding:8px 12px 8px 32px;
+      color:var(--text); font-family:'DM Sans',sans-serif; font-size:.78rem;
+      outline:none; transition:border-color .2s;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='%235a5a7a'%3E%3Cpath d='M21 19l-4.35-4.35A7.5 7.5 0 1 0 15 16.65L19.35 21 21 19zM10.5 16a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:10px center;
+    }
+    .search-input:focus { border-color:var(--accent); }
+    .search-input::placeholder { color:var(--muted); }
+    .search-highlight { background:rgba(255,107,53,.25); border-radius:2px; }
+
     /* ══════════════════ MODAL ══════════════════ */
     .modal-overlay {
       position:fixed; inset:0; background:rgba(0,0,0,.65); backdrop-filter:blur(6px);
@@ -544,6 +561,9 @@
         <h2 id="plHeaderName">Playlist</h2>
         <span class="pl-count" id="plCount">0 canciones</span>
       </div>
+      <div class="search-wrap">
+        <input class="search-input" id="searchInput" type="text" placeholder="Buscar canción..." oninput="filterTracks()" />
+      </div>
       <div class="pl-list" id="plList"><div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div></div>
       <div class="status-bar" id="statusBar">Iniciando...</div>
     </div>
@@ -592,6 +612,9 @@
     <div class="mobile-tracks-header">
       <h2 id="plHeaderNameMobile">Playlist</h2>
       <span class="pl-count" id="plCountMobile">0 canciones</span>
+    </div>
+    <div class="search-wrap" style="padding:8px 10px 4px;">
+      <input class="search-input" id="searchInputMobile" type="text" placeholder="Buscar canción..." oninput="filterTracks()" />
     </div>
     <div class="mobile-tracks-list" id="plListMobile"><div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div></div>
     <div class="status-bar" id="statusBarMobile">Iniciando...</div>
@@ -803,6 +826,8 @@
   function switchPlaylist(listId) {
     if (activeListId === listId && tracksUnsub) return;
     activeListId = listId; currentIndex = -1;
+    // Clear search on playlist switch
+    ['searchInput','searchInputMobile'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
     if (player && player.pauseVideo) player.pauseVideo();
     ['npTitle','npTitleMobile'].forEach(id => document.getElementById(id).textContent = '— Ninguna canción —');
     ['videoPlaceholder','videoPlaceholderMobile'].forEach(id => document.getElementById(id).style.display = 'flex');
@@ -981,24 +1006,59 @@
   }
 
   /* ── TRACKS RENDER ── */
+  function getSearchQuery() {
+    const d = document.getElementById('searchInput');
+    const m = document.getElementById('searchInputMobile');
+    return ((d && d.value) || (m && m.value) || '').toLowerCase().trim();
+  }
+
+  function filterTracks() {
+    // Sync both inputs
+    const d = document.getElementById('searchInput');
+    const m = document.getElementById('searchInputMobile');
+    const val = d && document.activeElement === d ? d.value : (m ? m.value : '');
+    if (d) d.value = val;
+    if (m) m.value = val;
+    renderPlaylist();
+  }
+
+  function highlightMatch(text, query) {
+    if (!query) return esc(text);
+    const idx = text.toLowerCase().indexOf(query);
+    if (idx === -1) return esc(text);
+    return esc(text.slice(0, idx)) +
+      `<span class="search-highlight">${esc(text.slice(idx, idx + query.length))}</span>` +
+      esc(text.slice(idx + query.length));
+  }
+
   function renderPlaylist() {
+    const query = getSearchQuery();
+    const filtered = playlist.map((t, i) => ({ ...t, origIdx: i }))
+      .filter(t => !query || t.title.toLowerCase().includes(query));
+
     const count = `${playlist.length} canción${playlist.length!==1?'es':''}`;
-    document.getElementById('plCount').textContent = count;
-    document.getElementById('plCountMobile').textContent = count;
+    document.getElementById('plCount').textContent = query
+      ? `${filtered.length} de ${playlist.length}`
+      : count;
+    document.getElementById('plCountMobile').textContent = query
+      ? `${filtered.length} de ${playlist.length}`
+      : count;
 
     const html = !playlist.length
       ? `<div class="empty-pl"><span class="ico">🎶</span>Aún no hay canciones.<br>Pega un link arriba.</div>`
-      : playlist.map((t,i) => `
-        <div class="pl-item ${i===currentIndex?'active':''} ${currentUser||''}" onclick="playAt(${i})">
+      : !filtered.length
+      ? `<div class="empty-pl"><span class="ico">🔍</span>Sin resultados para<br><strong>"${esc(query)}"</strong></div>`
+      : filtered.map(t => `
+        <div class="pl-item ${t.origIdx===currentIndex?'active':''} ${currentUser||''}" onclick="playAt(${t.origIdx})">
           <div class="pl-thumb">
             <img src="${thumb(t.id)}" alt="" loading="lazy"/>
-            <div class="pl-num">${i===currentIndex?'▶':i+1}</div>
+            <div class="pl-num">${t.origIdx===currentIndex?'▶':t.origIdx+1}</div>
           </div>
           <div class="pl-info">
-            <div class="pl-title">${esc(t.title)}</div>
+            <div class="pl-title">${highlightMatch(t.title, query)}</div>
             <div class="pl-url">youtu.be/${esc(t.id)}</div>
           </div>
-          ${i===currentIndex?`<div class="playing-bar"><span></span><span></span><span></span></div>`:''}
+          ${t.origIdx===currentIndex?`<div class="playing-bar"><span></span><span></span><span></span></div>`:''}
           <button class="del-btn" onclick="removeTrack(event,'${t.id}')" title="Eliminar">
             <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
           </button>
