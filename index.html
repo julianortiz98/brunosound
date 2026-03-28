@@ -160,6 +160,45 @@
     .pin-pad .pin-cancel:hover { border-color: var(--red); color: var(--red); }
     .tbadge.guest .dot { background: var(--sub); }
 
+
+    /* NOW PLAYING CARD */
+    .np-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--s2); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 20px;
+    }
+    .np-thumb-wrap {
+      width: 72px; height: 72px; border-radius: 10px;
+      background: var(--s3); flex-shrink: 0; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .np-thumb-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      border-radius: 10px;
+    }
+    .np-thumb-placeholder { font-size: 2rem; opacity: .3; }
+    .np-card-info { flex: 1; min-width: 0; }
+    .np-card-label {
+      font-size: .9rem; font-weight: 600; line-height: 1.4;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      color: var(--sub);
+    }
+    .np-playing-anim {
+      display: flex; gap: 3px; align-items: flex-end; height: 18px; margin-top: 8px;
+    }
+    .np-playing-anim span {
+      display: block; width: 4px; background: var(--accent);
+      border-radius: 2px; animation: ba2 1s ease-in-out infinite;
+    }
+    .np-playing-anim span:nth-child(1){height:6px;  animation-delay:0s;}
+    .np-playing-anim span:nth-child(2){height:14px; animation-delay:.1s;}
+    .np-playing-anim span:nth-child(3){height:10px; animation-delay:.2s;}
+    .np-playing-anim span:nth-child(4){height:16px; animation-delay:.3s;}
+    .np-playing-anim span:nth-child(5){height:8px;  animation-delay:.4s;}
+    @keyframes ba2 { 0%,100%{transform:scaleY(.3);} 50%{transform:scaleY(1);} }
+    .np-playing-anim.ale span { background: var(--alejandra); }
+
     /* ════════════════════════════
        APP SHELL
     ════════════════════════════ */
@@ -624,12 +663,27 @@
           <div class="np-title" id="npTitle">— Ninguna canción —</div>
         </div>
 
-        <div class="video-box">
-          <div class="vph" id="vph">
-            <div class="vph-ico">🎧</div>
-            <p>Agrega un link para empezar</p>
+        <!-- Now playing card -->
+        <div class="np-card" id="npCard">
+          <div class="np-thumb-wrap">
+            <img id="npThumb" src="" alt="" />
+            <div class="np-thumb-placeholder" id="npThumbPh">🎧</div>
           </div>
-          <div id="ytPlayer"></div>
+          <div class="np-card-info">
+            <div class="np-card-label" id="npCardLabel">Selecciona una canción</div>
+            <div class="np-playing-anim" id="npAnim" style="display:none;">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden iframe - always in DOM, never display:none -->
+        <div style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;">
+          <iframe id="ytFrame" width="1" height="1"
+            src="about:blank"
+            allow="autoplay"
+            allowfullscreen>
+          </iframe>
         </div>
 
         <div class="controls">
@@ -681,7 +735,6 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://www.youtube.com/iframe_api"></script>
 <script>
   // ── CONSTANTS ─────────────────────────────────────
   const EMOJIS = ['🎵','🎸','🎹','🎧','🎤','🔥','💜','🌙','⚡','🌊','🎶','🎺','🥁','🎻','🏖️','🌴','💫','🖤','🤍','🌈'];
@@ -692,8 +745,7 @@
   let tracks      = [];          // current playlist tracks
   let activePlId  = null;
   let currentIdx  = -1;
-  let ytPlayer    = null;
-  let ytReady     = false;
+  // ytPlayer/ytReady removed — using direct iframe src swap
   let autoplay    = true;
   let shuffle     = false;
   let unsubPl     = null;
@@ -789,7 +841,7 @@
     document.getElementById('stepUsers').style.display = 'block';
     document.getElementById('loginScreen').style.display = 'flex';
     document.getElementById('app').classList.remove('on');
-    if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+    stopVideo();
   }
 
   // ── FIREBASE ──────────────────────────────────────
@@ -859,7 +911,7 @@
     currentIdx = -1;
     const pl = playlists.find(p => p.id === id);
     if (!pl) return;
-    // Show player inner
+    // Show player inner FIRST so the div is in the DOM and visible
     document.getElementById('noPlMsg').style.display = 'none';
     const inner = document.getElementById('playerInner');
     inner.style.display = 'flex';
@@ -867,9 +919,13 @@
     document.getElementById('bannerName').textContent = pl.name;
     document.getElementById('npTitle').textContent    = '— Ninguna canción —';
     document.getElementById('vph').style.display      = 'flex';
-    if (ytPlayer && ytPlayer.stopVideo) ytPlayer.stopVideo();
+    stopVideo();
     renderSidebar();
     listenTracks(id);
+    // Init YT player now that the container is visible
+    if (!ytPlayer) {
+      setTimeout(initYTPlayer, 100);
+    }
   }
 
   function showNoPlMsg() {
@@ -917,9 +973,25 @@
   function playAt(idx) {
     if (idx < 0 || idx >= tracks.length) return;
     currentIdx = idx;
-    document.getElementById('npTitle').textContent = tracks[idx].title;
-    document.getElementById('vph').style.display = 'none';
-    if (ytReady) ytPlayer.loadVideoById(tracks[idx].id);
+    const t = tracks[idx];
+
+    // Update now playing UI
+    document.getElementById('npTitle').textContent = t.title;
+    document.getElementById('npCardLabel').textContent = t.title;
+
+    const thumb = document.getElementById('npThumb');
+    const ph    = document.getElementById('npThumbPh');
+    thumb.src = `https://img.youtube.com/vi/${t.id}/mqdefault.jpg`;
+    thumb.style.display = 'block';
+    ph.style.display = 'none';
+
+    const anim = document.getElementById('npAnim');
+    anim.style.display = 'flex';
+    const cls = user === 'alejandra' ? 'ale' : '';
+    anim.className = `np-playing-anim ${cls}`;
+
+    // Play via iframe
+    playVideo(t.id);
     renderTracks();
   }
 
@@ -947,20 +1019,20 @@
     document.getElementById('apPill').classList.toggle('on', autoplay);
   }
 
-  // ── YOUTUBE API ───────────────────────────────────
-  function onYouTubeIframeAPIReady() {
-    ytPlayer = new YT.Player('ytPlayer', {
-      height: '100%', width: '100%', videoId: '',
-      playerVars: { autoplay:1, rel:0, modestbranding:1 },
-      events: {
-        onReady: () => {
-          ytReady = true;
-          if (currentIdx >= 0 && tracks[currentIdx]) ytPlayer.loadVideoById(tracks[currentIdx].id);
-        },
-        onStateChange: e => { if (e.data === YT.PlayerState.ENDED && autoplay) nextTrack(); }
-      }
-    });
+  // ── YOUTUBE PLAYBACK (iframe src swap — no API needed) ──
+  function playVideo(videoId) {
+    const frame = document.getElementById('ytFrame');
+    frame.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=0`;
   }
+
+  function stopVideo() {
+    const frame = document.getElementById('ytFrame');
+    frame.src = 'about:blank';
+  }
+
+  // Kept for compatibility — not used with new approach
+  function onYouTubeIframeAPIReady() {}
+  function initYTPlayer() {}
 
   // ── RENDER SIDEBAR ────────────────────────────────
   function renderSidebar() {
