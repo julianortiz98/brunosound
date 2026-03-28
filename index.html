@@ -112,7 +112,7 @@
     .shake { animation:shake .4s ease; }
 
     /* ══════════════════ APP SHELL ══════════════════ */
-    #app { display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0; }
+    #app { display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0; height:100%; }
     #app.visible { display:flex; }
 
     /* TOPBAR */
@@ -337,7 +337,7 @@
 
     /* ══════════════════ MOBILE PANELS ══════════════════ */
     /* On mobile: stack views vertically, show one at a time */
-    /* Mobile panels hidden everywhere except mobile breakpoint */
+    /* Mobile panels and nav: hidden on desktop, shown only via media query */
     .mobile-panel { display:none !important; }
     .mobile-nav   { display:none !important; }
 
@@ -360,18 +360,33 @@
       .logout-btn { font-size:.7rem; padding:4px 10px; }
       .sidebar-toggle { display:none; }
 
-      /* Hide desktop layout */
+      /* Hide desktop layout completely */
       .desktop-layout { display:none !important; }
 
-      /* Show mobile panels and nav */
+      /* Show mobile nav */
       .mobile-nav { display:flex !important; }
-      .mobile-panel { display:none !important; }
-      .mobile-panel.active { display:flex !important; }
+
+      /* Mobile panels fill remaining space */
+      .mobile-panel {
+        display:none !important;
+        flex:1;
+        flex-direction:column;
+        overflow:hidden;
+        min-height:0;
+      }
+      .mobile-panel.active {
+        display:flex !important;
+        flex:1;
+        flex-direction:column;
+        overflow:hidden;
+        min-height:0;
+      }
 
       /* Mobile player panel */
       #mobilePlayer {
         padding:14px 14px 10px;
         gap:14px; background:var(--bg);
+        overflow-y:auto;
       }
       #mobilePlayer .add-form input { font-size:.72rem; padding:9px 12px; }
       #mobilePlayer .add-btn { padding:9px 14px; font-size:.78rem; }
@@ -382,7 +397,8 @@
       #mobilePlayer .autoplay-row { font-size:.7rem; gap:6px; }
 
       /* Mobile playlists panel */
-      #mobilePlaylists { background:var(--bg); }
+      #mobilePlaylists { background:var(--bg); display:none !important; }
+      #mobilePlaylists.active { display:flex !important; flex-direction:column; }
       .mobile-pl-header {
         padding:14px 14px 10px;
         display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
@@ -394,17 +410,18 @@
         color:white; font-family:'DM Sans',sans-serif; font-weight:700;
         font-size:.76rem; padding:6px 14px; cursor:pointer;
       }
-      .mobile-sidebar-list { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:4px; }
+      .mobile-sidebar-list { flex:1; overflow-y:auto; padding:8px 10px; display:flex; flex-direction:column; gap:4px; min-height:0; }
 
       /* Mobile tracks panel */
-      #mobileTracks { background:var(--bg); }
+      #mobileTracks { background:var(--bg); display:none !important; }
+      #mobileTracks.active { display:flex !important; flex-direction:column; }
       .mobile-tracks-header {
         padding:14px 14px 10px; flex-shrink:0;
         display:flex; align-items:center; justify-content:space-between;
         border-bottom:1px solid var(--border);
       }
       .mobile-tracks-header h2 { font-size:.62rem; font-weight:700; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; }
-      .mobile-tracks-list { flex:1; overflow-y:auto; padding:6px 8px 80px; display:flex; flex-direction:column; gap:4px; }
+      .mobile-tracks-list { flex:1; overflow-y:auto; padding:6px 8px 20px; display:flex; flex-direction:column; gap:4px; min-height:0; }
 
       /* Mini player bar on mobile (tracks/playlists views) */
       .mini-player-bar {
@@ -577,7 +594,7 @@
       <span class="pl-count" id="plCountMobile">0 canciones</span>
     </div>
     <div class="mobile-tracks-list" id="plListMobile"><div class="empty-pl"><span class="ico">🎶</span>Selecciona una playlist.</div></div>
-    <div class="status-bar" id="statusBarMobile" style="position:fixed;bottom:112px;left:0;right:0;">Iniciando...</div>
+    <div class="status-bar" id="statusBarMobile">Iniciando...</div>
   </div>
 
   <!-- MOBILE BOTTOM NAV -->
