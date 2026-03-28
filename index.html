@@ -643,8 +643,14 @@
       userPlaylists = snap.docs.map(d => ({ listId: d.id, ...d.data() }));
       if (userPlaylists.length === 0) { await createPlaylist('Mi Mix', true); return; }
       renderSidebar();
-      if (!activeListId || !userPlaylists.find(l => l.listId === activeListId)) {
+      // Solo cambiar playlist si no hay ninguna activa o si la activa fue eliminada
+      const stillExists = userPlaylists.find(l => l.listId === activeListId);
+      if (!activeListId || !stillExists) {
         switchPlaylist(userPlaylists[0].listId);
+      }
+      // Si ya existe la playlist activa, solo actualizar el nombre en el header
+      else if (stillExists) {
+        document.getElementById('plHeaderName').textContent = stillExists.name;
       }
     });
   }
@@ -702,9 +708,11 @@
   }
 
   function switchPlaylist(listId) {
+    // Si ya estamos en esta playlist, no hacer nada
+    if (activeListId === listId && tracksUnsub) return;
     activeListId = listId;
     currentIndex = -1;
-    if (player && player.stopVideo) player.stopVideo();
+    if (player && player.pauseVideo) player.pauseVideo();
     document.getElementById('npTitle').textContent = '— Ninguna canción —';
     document.getElementById('videoPlaceholder').style.display = 'flex';
     const pl = userPlaylists.find(l => l.listId === listId);
