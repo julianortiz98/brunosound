@@ -337,10 +337,9 @@
 
     /* ══════════════════ MOBILE PANELS ══════════════════ */
     /* On mobile: stack views vertically, show one at a time */
-    .mobile-panel {
-      display:none; flex:1; flex-direction:column; overflow:hidden; min-height:0;
-    }
-    .mobile-panel.active { display:flex; }
+    /* Mobile panels hidden everywhere except mobile breakpoint */
+    .mobile-panel { display:none !important; }
+    .mobile-nav   { display:none !important; }
 
     /* ══════════════════ RESPONSIVE ══════════════════ */
 
@@ -364,8 +363,10 @@
       /* Hide desktop layout */
       .desktop-layout { display:none !important; }
 
-      /* Show mobile nav */
-      .mobile-nav { display:flex; }
+      /* Show mobile panels and nav */
+      .mobile-nav { display:flex !important; }
+      .mobile-panel { display:none !important; }
+      .mobile-panel.active { display:flex !important; }
 
       /* Mobile player panel */
       #mobilePlayer {
